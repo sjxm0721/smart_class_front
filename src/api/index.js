@@ -4,11 +4,13 @@ import * as account from './activity/account'
 import * as myClass from './activity/myClass'
 import * as device from './activity/device'
 import * as student from './activity/student'
+import * as submit from './activity/submit'
 
 export default{
   school,
   account,
   myClass,
   device,
-  student
+  student,
+  submit
 }

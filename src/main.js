@@ -55,5 +55,6 @@ new Vue({
   },
   router,
   store,
+  devtools:true,
   render: h => h(App)
 })

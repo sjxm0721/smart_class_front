@@ -33,7 +33,7 @@ export default {
   },
   methods: {
     getBreadcrumb() {
-      // only show routes with meta.title
+      // only detail routes with meta.title
       let matched = this.$route.matched.filter(
         (item) => item.meta && item.meta.title
       );

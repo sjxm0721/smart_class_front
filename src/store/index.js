@@ -10,6 +10,7 @@ import myClass from './modules/activity/myClass'
 import device from './modules/activity/device'
 import student from './modules/activity/student'
 import result from './modules/activity/result'
+import homework from './modules/activity/homework'
 
 Vue.use(Vuex)
 
@@ -23,7 +24,8 @@ const store = new Vuex.Store({
     myClass,
     device,
     student,
-    result
+    result,
+    homework
   },
   getters
 })
