@@ -1,268 +1,133 @@
 <template>
-  <div class="all">
-    <div class="body2" v-show="true">
-      <div class="classInc">
+  <div class="homework-detail">
+    <h2 class="homework-title">{{ homework.title }}</h2>
+    <div class="homework-info">
+      <p><strong>可见时间:</strong> {{ formatTime(homework.sightedTime) }}</p>
+      <p><strong>截止时间:</strong> {{ formatTime(homework.completeTime) }}</p>
+    </div>
+    <div class="homework-content">
+      <h3>作业内容:</h3>
+      <div class="content-wrapper">
+        <pre>{{ homework.content }}</pre>
       </div>
-      <div class="addStudentBtn">
-        <div class="btn-on-bottom">
-          <el-input
-            placeholder="请输入作业名"
-            prefix-icon="el-icon-search"
-            style="width: 150px; margin-left: 10px"
-            size="small"
-            @change="getHomeWorkInfoList"
-            v-model="homeworkInput"
-          >
-          </el-input>
-        </div>
-        <div class="btn-on-top">
-          <el-button
-            type="primary"
-            @click="addHomeWork"
-            size="small"
-            style="margin-left: 10px"
-          >布置作业<i class="el-icon-plus el-icon--right"></i
-          ></el-button>
-        </div>
-      </div>
-      <div class="studentInf">
-        <el-table
-          :data="formattedHomeworkInfoList"
-          style="width: 100%"
-          max-height="500"
-          height="500"
-          ref="studentInfoList"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column type="expand">
-            <template slot-scope="props">
-              <el-form label-position="left" class="demo-table-expand">
-                <el-form-item label="作业名称">
-                  <span>{{ props.row.title }}</span>
-                </el-form-item>
-                <el-form-item label="布置时间">
-                  <span>{{ props.row.sightedTime }}</span>
-                </el-form-item>
-                <el-form-item label="截止时间">
-                  <span>{{ props.row.completeTime }}</span>
-                </el-form-item>
-                <el-form-item label="完成情况">
-                  <span>{{ props.row.completeSituation }}</span>
-                </el-form-item>
-                <el-form-item label="作业类型">
-                  <span>{{ props.row.type===0?'面向班级':'面向个人'}}</span>
-                </el-form-item>
-                <el-form-item label="目标对象">
-                  <span>{{ props.row.target }}</span>
-                </el-form-item>
-                <el-form-item label="已完成名单">
-                  <span>{{ props.row.studentCompleted }}</span>
-                </el-form-item>
-                <el-form-item label="未完成名单">
-                  <span>{{ props.row.studentNotCompleted }}</span>
-                </el-form-item>
-              </el-form>
-            </template>
-          </el-table-column>
-          <el-table-column fixed prop="title" label="作业名称" width="180" show-overflow-tooltip>
-          </el-table-column>
-          <el-table-column label="类型" width="120">
-            <template slot-scope="{ row, $index }">
-              <el-tag v-if="row.type === 0">面向班级</el-tag>
-              <el-tag type="success" v-else>面向个人</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="target" label="目标对象" width="120" show-overflow-tooltip>
-          </el-table-column>
-          <el-table-column prop="sightedTime" label="发布时间" width="150">
-          </el-table-column>
-          <el-table-column prop="completeTime" label="截止时间" width="150">
-          </el-table-column>
-          <el-table-column prop="completeSituation" label="完成情况" width="120">
-          </el-table-column>
-          <el-table-column fixed="right" label="操作" width="180">
-            <template slot-scope="{ row, $index }">
-              <el-button
-                @click.native.prevent="editHomework(row)"
-                type="text"
-                size="small"
-                style="color: skyblue;"
-              >
-                详情
-              </el-button>
-              <el-button
-                @click.native.prevent="editHomework(row)"
-                type="text"
-                size="small"
-                style="color: orange;margin-left: 20px !important;"
-              >
-                修改
-              </el-button>
-              <el-popconfirm
-                title="确定删除吗？"
-                @onConfirm="deleteHomework(row)"
-              >
-                <el-button
-                  type="text"
-                  size="small"
-                  style="color: red; margin-left: 20px"
-                  slot="reference"
-                >
-                  删除
-                </el-button>
-              </el-popconfirm>
-            </template>
-          </el-table-column>
-        </el-table>
-      </div>
+    </div>
+    <div class="homework-resources">
+      <h3>附件资源:</h3>
+      <ul>
+        <li v-for="(resource, index) in homework.resources" :key="index">
+          <a :href="resource.url" target="_blank" @click="downloadResource(resource)">
+            {{ resource.name }}
+          </a>
+        </li>
+      </ul>
+    </div>
+    <div class="homework-actions">
+      <el-button type="primary" @click="downloadHomework">下载作业</el-button>
     </div>
   </div>
 </template>
 
 <script>
-import { mapState } from "vuex";
+import { reqGetHomeWorkInfo } from '@/api/activity/homework'
+
 export default {
-  name: "HomeWorkDetail",
-  computed: {
-    ...mapState("user",["accountId"]),
-    ...mapState("homework", ["homeworkInfoList"]),
-    formattedHomeworkInfoList() {
-      return this.homeworkInfoList.map(item => ({
-        ...item,
-        sightedTime: this.formatTimestamp(item.sightedTime),
-        completeTime: this.formatTimestamp(item.completeTime),
-        completeSituation: item.curNum +" / "+item.totalNum
-      }));
-    }
-  },
+  name:'HomeWorkDetail',
   data() {
     return {
-      homeworkInput: "",
-      studentName: "",
+      homework: {
+        id: '',
+        title: '',
+        totalNum: 0,
+        curNum: 0,
+        content: '',
+        resources: []
+      }
     };
   },
   mounted() {
-    this.getHomeWorkInfoList();
+    // 从后端API获取作业详情数据
+    this.fetchHomeworkDetail();
   },
   methods: {
-    addHomeWork(){
+    async fetchHomeworkDetail() {
+      const homeworkId = this.$route.params.homeworkId;
+      // 发送请求获取作业详情数据
+      reqGetHomeWorkInfo(homeworkId).then(res => {
+        console.log(res)
+        if (res.code === 200) {
+          this.homework = res.data
+          // this.homework.sightedTime = this.formatTimestamp(this.homework.sightedTime)
+          // this.homework.completeTime = this.formatTimestamp(this.homework.completeTime)
+        } else {
 
-    },
-    getHomeWorkInfoList(){
-      let homeWorkTotalInfo = {
-        input:this.homeworkInput,
-        teacherId:this.accountId
-      };
-      this.$store
-        .dispatch("homework/getHomeWorkInfoList", homeWorkTotalInfo)
-        .then((res)=>{
-          console.log(res)
-        })
-        .catch((err) => {
-          this.$message({
-            type: "error",
-            message: err,
-          });
-        });
-    },
-    handleSelectionChange(){
+        }
+      }).catch(error => {
 
+      })
     },
-    editHomework(row){
-
-    },
-    deleteHomework(row){
-
-    },
-    toggleSelected(){
-
-    },
-    deleteSelected(){
-
-    },
-    formatTimestamp(timestamp) {
+    formatTime(timestamp) {
       const date = new Date(timestamp);
-      return date.toLocaleString('zh-CN', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
+      return date.toLocaleString();
     },
-  },
-  watch: {
-  },
+    downloadResource(resource) {
+      // 下载附件资源
+      window.open(resource.url, '_blank');
+    },
+    downloadHomework() {
+      // 下载整个作业
+      const homeworkUrl = `/api/homework/${this.homework.id}/download`;
+      window.open(homeworkUrl, '_blank');
+    }
+  }
 };
 </script>
 
-<style>
-.body1 {
-  margin: 20px;
+<style scoped>
+.homework-detail {
+  max-width: 1000px;
+  margin: 0 auto;
   padding: 20px;
-  background-color: #fff;
-  border-radius: 10px;
 }
 
-.body1::before,
-.body1::after{
-  content:'';
-  display: table;
+.homework-title {
+  font-size: 24px;
+  margin-bottom: 20px;
 }
 
-.body1::after{
-  clear:both;
+.homework-info {
+  margin-bottom: 20px;
 }
 
-.body1-left{
-  float: left;
+.homework-content {
+  margin-bottom: 20px;
 }
 
-.body1-right{
-  float: right;
-}
-
-.body2 {
-  margin: 20px;
+.content-wrapper {
+  background-color: #f5f5f5;
   padding: 20px;
-  background-color: #fff;
-  border-radius: 10px;
+  border-radius: 4px;
 }
 
-.body2::before,
-.body2::after {
-  content: "";
-  display: table;
+.content-wrapper pre {
+  white-space: pre-wrap;
+  font-size: 16px;
+  line-height: 1.6;
 }
 
-.body2::after {
-  clear: both;
+.homework-resources {
+  margin-bottom: 20px;
 }
 
-.classInc {
-  float: left;
-  width: 60%;
+.homework-resources ul {
+  list-style-type: none;
+  padding: 0;
 }
 
-.addStudentBtn {
-  display: flex;
-  flex-direction: row;
-  justify-content:space-between ;
+.homework-resources li {
+  margin-bottom: 10px;
 }
 
-.btn-on-top {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.btn-on-bottom {
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
-}
-
-.studentInf {
-  margin-top: 30px;
+.homework-actions {
+  text-align: right;
 }
 </style>

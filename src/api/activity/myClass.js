@@ -55,3 +55,11 @@ export const reqClearTeacher=(classId)=>{
         params:{classId}
     })
 }
+
+export const reqGetAllClassList=(accountId)=>{
+  return request({
+    url:'myclass/all-class',
+    method:'get',
+    params:{accountId}
+  })
+}

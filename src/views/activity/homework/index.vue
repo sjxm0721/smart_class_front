@@ -83,7 +83,7 @@
           <el-table-column fixed="right" label="操作" width="180">
             <template slot-scope="{ row, $index }">
               <el-button
-                @click.native.prevent="editHomework(row)"
+                @click.native.prevent="goToHomeworkDetail(row)"
                 type="text"
                 size="small"
                 style="color: skyblue;"
@@ -146,7 +146,7 @@ export default {
   },
   methods: {
     addHomeWork(){
-
+      this.$router.push("/homework/add")
     },
     getHomeWorkInfoList(){
       let homeWorkTotalInfo = {
@@ -179,6 +179,9 @@ export default {
     },
     deleteSelected(){
 
+    },
+    goToHomeworkDetail(row){
+      this.$router.push(`/homework/detail/${row.id}`)
     },
     formatTimestamp(timestamp) {
       const date = new Date(timestamp);

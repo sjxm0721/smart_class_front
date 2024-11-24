@@ -47,3 +47,11 @@ export const reqGetStudentNumberAndStatus=(schoolId,classId)=>{
         params:{schoolId,classId},
     })
 }
+
+export const reqGetAllStudentList=(accountId)=>{
+  return request({
+    url:'/student/all-stu',
+    method:'get',
+    params:{accountId},
+  })
+}

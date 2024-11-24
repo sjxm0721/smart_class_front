@@ -7,15 +7,15 @@
         <span>提交信息</span>
       </div>
       <div>
-        <p><strong>作业标题:</strong> {{ submit.homeworkTitle }}</p>
-        <p><strong>提交时间:</strong> {{ submit.submitTime }}</p>
+        <p><strong>作业标题:</strong> {{ submitInfo.homeworkTitle }}</p>
+        <p><strong>提交时间:</strong> {{ submitInfo.submitTime }}</p>
         <p>
           <strong>批改状态:</strong>
-          <el-tag :type="submit.isCorrected ? 'success' : 'warning'">
-            {{ submit.isCorrected ? '已批改' : '未批改' }}
+          <el-tag :type="submitInfo.isCorrected ? 'success' : 'warning'">
+            {{ submitInfo.isCorrected ? '已批改' : '未批改' }}
           </el-tag>
         </p>
-        <p><strong>评分:</strong> {{ submit.score }}</p>
+        <p><strong>评分:</strong> {{ submitInfo.score?submitInfo.score:'暂无评分' }}</p>
       </div>
     </el-card>
 
@@ -24,7 +24,7 @@
         <span>作业内容</span>
       </div>
       <div>
-        <pre>{{ submit.content }}</pre>
+        <pre>{{ submitInfo.content }}</pre>
       </div>
     </el-card>
 
@@ -33,6 +33,7 @@
         <span>教师评价</span>
       </div>
       <div>
+        <div  style="margin-bottom: 40px" v-if="submitInfo.comment!=null">旧评价：{{submitInfo.comment}}</div>
         <el-input
           type="textarea"
           :rows="3"
@@ -49,7 +50,7 @@
         <span>教师评价</span>
       </div>
       <div>
-        <p>{{ submit.comment }}</p>
+        <p>{{ submitInfo.comment }}</p>
       </div>
     </el-card>
 
@@ -58,22 +59,37 @@
 </template>
 
 <script>
+import { reqGetSubmitInfo } from '@/api/activity/submit'
+
 export default {
   name:'SubmitDetail',
   data() {
     return {
-      submit: {}, // 作业提交详情
+      submitInfo: {}, // 作业提交详情
       isTeacher: true, // 是否为教师视角
       comment: '',
       score: null
     }
   },
   methods: {
-    fetchSubmitDetail() {
+    async fetchSubmitDetail() {
       // 根据路由参数中的作业提交ID,从后端API获取作业提交详情数据
-      const submitId = this.$route.params.id;
+      const submitId = this.$route.params.submitId;
+      console.log(submitId)
       // 这里假设通过 this.$http.get(url) 发送请求并将结果赋值给 this.submit
       // 如: this.submit = response.data;
+
+      reqGetSubmitInfo(submitId).then(res => {
+        console.log(res)
+        if (res.code === 200) {
+          this.submitInfo = res.data
+          this.submitInfo.submitTime = this.formatTimestamp(this.submitInfo.submitTime)
+        } else {
+
+        }
+      }).catch(error => {
+
+      })
     },
     saveComment() {
       // 教师保存评价和评分
@@ -87,7 +103,18 @@ export default {
     goBack() {
       // 返回作业提交列表页面
       this.$router.go(-1);
-    }
+    },
+    formatTimestamp(timestamp) {
+      const date = new Date(timestamp);
+      return date.toLocaleString('zh-CN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    },
   },
   created() {
     this.fetchSubmitDetail();

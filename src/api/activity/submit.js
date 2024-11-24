@@ -8,3 +8,11 @@ export const reqGetSubmitInfoList=({teacherId,studentId,status,input})=>{
       params:{teacherId,studentId,status,input},
     })
 }
+
+export const reqGetSubmitInfo=(submitId)=>{
+  return request({
+    url:'/submit/info',
+    method:'get',
+    params:{submitId},
+  })
+}
