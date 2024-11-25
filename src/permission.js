@@ -1,4 +1,4 @@
-// 登录权限管理 进度条加载  暂时不改 
+// 登录权限管理 进度条加载  暂时不改
 
 import router from './router'
 import store from './store'
@@ -42,10 +42,10 @@ router.beforeEach(async(to, from, next) => {
           next(`/login?redirect=${to.path}`)
           NProgress.done()
         }
-        
+
       }
     }
-  } 
+  }
   else {
     /* has no token*/
 

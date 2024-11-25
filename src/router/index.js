@@ -139,6 +139,30 @@ export const constantRoutes = [
     ]
   },
 
+  //课程
+  {
+    path:"/subject",
+    component: Layout,
+    meta:{auth:2},
+    children:[
+      {
+        path:"",
+        name:"Subject",
+        component:()=>import("@/views/activity/subject"),
+        meta:{title:'课程',icon:'device'}
+      }
+    ]
+  },
+
+  {
+    path:"/subject-detail/:subjectId",
+    name:"SubjectDetail",
+    component:()=>import("@/views/activity/subject/detail"),
+    meta:{auth:2,title:'课程详情'},
+    hidden: true
+  },
+
+
   //学生管理
   {
     path:"/student",
@@ -263,8 +287,8 @@ export function resetRouter() {
 
 router.beforeEach((to,from,next)=>{
   const userAuth= store.getters.auth;
-  if(to.name=='Account'||to.name=='AccountAdd'){
-    if(userAuth == 3){
+  if(to.name==='Account'||to.name==='AccountAdd'){
+    if(userAuth !== 1){
       Message.error('没有权限');
       next("/dashboard");
     }
@@ -272,18 +296,8 @@ router.beforeEach((to,from,next)=>{
       next();
     }
   }
-  else if(to.name=='School'||to.name=='SchoolAdd'){
-    if(userAuth!=1){
-      Message.error('没有权限');
-      next("/dashboard");
-    }
-    else{
-      next();
-    }
-  }
-
-  else if(to.name=='MyClass'){
-    if(userAuth==3){
+  else if(to.name==='School'||to.name==='SchoolAdd'){
+    if(userAuth!==1){
       Message.error('没有权限');
       next("/dashboard");
     }
@@ -292,8 +306,18 @@ router.beforeEach((to,from,next)=>{
     }
   }
 
-  else if(to.name=='Device'){
-    if(userAuth==3){
+  else if(to.name==='MyClass'){
+    if(userAuth===0){
+      Message.error('没有权限');
+      next("/dashboard");
+    }
+    else{
+      next();
+    }
+  }
+
+  else if(to.name==='Device'){
+    if(userAuth===0){
       Message.error('没有权限');
       next("/dashboard");
     }

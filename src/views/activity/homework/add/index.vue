@@ -117,12 +117,12 @@ export default {
     }
   },
   mounted() {
-    this.fetchStudents()
+    this.fetchClasses()
   },
   methods: {
     handleTypeChange() {
-      if (this.form.type === 0) {
-        this.fetchClasses()
+      if (this.form.type === 1) {
+        this.fetchStudents()
       }
     },
     fetchStudents() {
@@ -190,7 +190,7 @@ export default {
         console.log(res)
         if (res.code === 200) {
           this.$message.success('作业布置成功')
-          this.$router.push('/homework/list')
+          this.$router.push('/homework')
         } else {
           // 处理错误情况
         }

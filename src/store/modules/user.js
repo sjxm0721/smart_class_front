@@ -85,7 +85,7 @@ const actions = {
 
   async tokenLogin({commit},token){
     let result = await tokenLogin(token);
-    if(result.code==200){
+    if(result.code===200){
       commit('SET_ACCOUNT_ID',result.data['accountId']);
       commit('SET_USER_ID',result.data['userId']);
       commit('SET_NAME',result.data['name']);
