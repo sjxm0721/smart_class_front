@@ -10,7 +10,7 @@ const getDefaultState = () => {
     userId:null,
     name: '',
     avatar: '',
-    auth: '',
+    auth: null,
     schoolId: null,
     classId: null,
     phone: '',
@@ -63,7 +63,7 @@ const actions = {
     //结构出用户名与密码
     const { userId, password } = userInfo
     let result=await login({userId:userId.trim(),password:password});
-    if(result.code==200){
+    if(result.code===200){
       commit('SET_TOKEN', result.data['token']);
       commit('SET_ACCOUNT_ID',result.data['accountId']);
       commit('SET_USER_ID',result.data['userId']);

@@ -49,9 +49,6 @@
                 <el-form-item label="完成情况">
                   <span>{{ props.row.completeSituation }}</span>
                 </el-form-item>
-                <el-form-item label="作业类型">
-                  <span>{{ props.row.type===0?'面向班级':'面向个人'}}</span>
-                </el-form-item>
                 <el-form-item label="目标对象">
                   <span>{{ props.row.target }}</span>
                 </el-form-item>

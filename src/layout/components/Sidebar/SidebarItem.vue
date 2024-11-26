@@ -1,7 +1,7 @@
 <template>
-  <div v-if="!item.hidden&&(item.meta.auth==1||item.meta.auth==2&&auth==1||item.meta.auth==2&&auth==2||item.meta.auth==3&&auth==1)">
-    <template 
-    v-if="hasOneShowingChild(item.children,item) 
+  <div v-if="!item.hidden&&item.meta.auth.includes(auth)">
+    <template
+    v-if="hasOneShowingChild(item.children,item)
     && (!onlyOneChild.children||onlyOneChild.noShowingChildren)&&!item.alwaysShow
     "
     >
@@ -35,6 +35,7 @@ import Item from './Item'
 import AppLink from './Link'
 import FixiOSBug from './FixiOSBug'
 import crypto from '@/utils/crypto'
+import { mapState } from 'vuex'
 
 export default {
   name: 'SidebarItem',
@@ -63,9 +64,13 @@ export default {
       auth:null,
     }
   },
+  computed: {
+    ...mapState("user", ["auth"]),
+  },
   created(){
     const savedAuth = crypto.Decrypt(localStorage.getItem('user_auth'));
     this.auth=savedAuth;
+    console.log(this.item.meta.auth,"-",this.auth)
   },
   methods: {
     hasOneShowingChild(children = [], parent) {

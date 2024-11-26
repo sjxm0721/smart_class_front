@@ -10,6 +10,6 @@ const getters = {
   schoolId: state=>state.user.schoolId,
   classId: state=>state.user.classId,
   phone: state=>state.user.phone,
-  email: state=>state.user.email,
+  email: state=>state.user.email
 }
 export default getters

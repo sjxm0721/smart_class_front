@@ -36,14 +36,14 @@ import { title } from "@/settings";
 export const constantRoutes = [
   {
     path: "/login",
-    meta:{auth:1},
+    meta:{auth:['0','1','2']},
     component: () => import("@/views/login/index"),
     hidden: true,
   },
 
   {
     path: "/404",
-    meta:{auth:1},
+    meta:{auth:['0','1','2']},
     component: () => import("@/views/404"),
     hidden: true,
   },
@@ -53,7 +53,7 @@ export const constantRoutes = [
     path: "/",
     component: Layout,
     redirect: "/dashboard",
-    meta:{auth:1},
+    meta:{auth:['0','1','2']},
     children: [
       {
         path: "dashboard",
@@ -72,7 +72,7 @@ export const constantRoutes = [
   {
     path: "/school",
     component: Layout,
-    meta:{auth:3},
+    meta:{auth:['1']},
     children: [
       {
           path:"",
@@ -92,7 +92,7 @@ export const constantRoutes = [
   {
     path: "/account",
     component: Layout,
-    meta:{auth:2},
+    meta:{auth:['1']},
     children: [
       {
         path: "",
@@ -113,7 +113,7 @@ export const constantRoutes = [
   {
     path:"/myClass",
     component: Layout,
-    meta:{auth:2},
+    meta:{auth:['1']},
     children: [
       {
         path:"",
@@ -128,7 +128,7 @@ export const constantRoutes = [
   {
     path:"/device",
     component: Layout,
-    meta:{auth:2},
+    meta:{auth:['1','2']},
     children:[
       {
         path:"",
@@ -143,7 +143,7 @@ export const constantRoutes = [
   {
     path:"/subject",
     component: Layout,
-    meta:{auth:2},
+    meta:{auth:['0','2']},
     children:[
       {
         path:"",
@@ -154,12 +154,23 @@ export const constantRoutes = [
     ]
   },
 
+  //课程详情页
   {
     path:"/subject-detail/:subjectId",
-    name:"SubjectDetail",
     component:()=>import("@/views/activity/subject/detail"),
-    meta:{auth:2,title:'课程详情'},
-    hidden: true
+    meta:{auth:['2'],title:'课程详情'},
+    children:[
+      {
+        path: "",
+        name:"SubjectDetailContent",
+        component:()=>import("@/views/activity/subject/detail/SubjectDetailContent")
+      },
+      {
+        path:"chapter/:chapterId?",
+        name:"ChapterDetail",
+        component:()=>import("@/views/activity/subject/detail/chapter"),
+      }
+    ],
   },
 
 
@@ -167,7 +178,7 @@ export const constantRoutes = [
   {
     path:"/student",
     component: Layout,
-    meta:{auth:1},
+    meta:{auth:['2']},
     children:[
       {
         path:"",
@@ -188,7 +199,7 @@ export const constantRoutes = [
   {
     path:"/homework",
     component: Layout,
-    meta:{auth:1},
+    meta:{auth:['0','2']},
     children:[
       {
         path:"",
@@ -214,7 +225,7 @@ export const constantRoutes = [
   {
     path:"/submit",
     component: Layout,
-    meta:{auth:2},
+    meta:{auth:['2']},
     children: [
       {
         path:"",
@@ -234,7 +245,7 @@ export const constantRoutes = [
   {
     path:"/resource",
     component: Layout,
-    meta:{auth:1},
+    meta:{auth:['0','1','2']},
     children:[
       {
         path:"",
@@ -251,20 +262,6 @@ export const constantRoutes = [
     ]
   },
 
-  //结果管理
-  {
-    path:"/result",
-    component: Layout,
-    meta:{auth:1},
-    children:[
-      {
-        path:"",
-        name:"Result",
-        component:()=>import("@/views/activity/result"),
-        meta:{title:'检测结果管理',icon:'result'}
-      }
-    ]
-  },
 
   // 404 page must be placed at the end !!!
   { path: "*", redirect: "/404", hidden: true ,meta:{auth:1}},
@@ -288,7 +285,7 @@ export function resetRouter() {
 router.beforeEach((to,from,next)=>{
   const userAuth= store.getters.auth;
   if(to.name==='Account'||to.name==='AccountAdd'){
-    if(userAuth !== 1){
+    if(userAuth != 1){
       Message.error('没有权限');
       next("/dashboard");
     }
@@ -297,7 +294,7 @@ router.beforeEach((to,from,next)=>{
     }
   }
   else if(to.name==='School'||to.name==='SchoolAdd'){
-    if(userAuth!==1){
+    if(userAuth!=1){
       Message.error('没有权限');
       next("/dashboard");
     }
@@ -307,7 +304,7 @@ router.beforeEach((to,from,next)=>{
   }
 
   else if(to.name==='MyClass'){
-    if(userAuth===0){
+    if(userAuth==0){
       Message.error('没有权限');
       next("/dashboard");
     }
@@ -317,7 +314,7 @@ router.beforeEach((to,from,next)=>{
   }
 
   else if(to.name==='Device'){
-    if(userAuth===0){
+    if(userAuth==0){
       Message.error('没有权限');
       next("/dashboard");
     }

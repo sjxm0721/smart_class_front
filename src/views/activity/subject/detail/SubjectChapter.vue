@@ -6,7 +6,7 @@
         :key="chapter.id"
         :timestamp="chapter.title">
         <el-card>
-          <el-table :data="chapter.lessons">
+          <el-table :data="chapter.lessons" @row-click="handleLessonClick">
             <el-table-column prop="title" label="课时">
               <template slot-scope="scope">
                 <span>{{ scope.row.id }} {{ scope.row.title }}</span>
@@ -23,6 +23,17 @@
 <script>
 export default {
   name: 'SubjectChapter',
-  props: ['subject']
+  props: ['subject'],
+  methods: {
+    handleLessonClick(row) {
+      this.$router.push({
+        name: 'ChapterDetail',
+        params: {
+          subjectId: this.subject.id,
+          chapterId: row.id
+        }
+      });
+    }
+  }
 }
 </script>
