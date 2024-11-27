@@ -159,6 +159,7 @@ export const constantRoutes = [
     path:"/subject-detail/:subjectId",
     component:()=>import("@/views/activity/subject/detail"),
     meta:{auth:['2'],title:'课程详情'},
+    hidden: true,
     children:[
       {
         path: "",

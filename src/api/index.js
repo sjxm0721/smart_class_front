@@ -5,6 +5,7 @@ import * as myClass from './activity/myClass'
 import * as device from './activity/device'
 import * as student from './activity/student'
 import * as submit from './activity/submit'
+import * as subject from './activity/subject'
 
 export default{
   school,
@@ -12,5 +13,6 @@ export default{
   myClass,
   device,
   student,
-  submit
+  submit,
+  subject
 }

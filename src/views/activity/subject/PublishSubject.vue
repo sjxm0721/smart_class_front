@@ -1,121 +1,248 @@
 <template>
-  <div class="publish-subject">
-    <div class="modal">
-      <h2>发布新课程</h2>
-      <form @submit.prevent="handlePublish">
-        <div class="form-item">
-          <label>标题</label>
-          <input v-model="newSubject.title" required>
-        </div>
-        <div class="form-item">
-          <label>简介</label>
-          <textarea v-model="newSubject.brief" required></textarea>
-        </div>
-        <div class="form-item">
-          <label>封面</label>
-          <input type="file" @change="handleCoverUpload">
-        </div>
-        <div class="form-item">
-          <label>开课班级</label>
-          <select v-model="newSubject.classId" required>
-            <option disabled value="">请选择班级</option>
-            <option
-              v-for="c in classList"
-              :key="c.id"
-              :value="c.id"
-            >{{ c.name }}
-            </option>
-          </select>
-        </div>
-        <div class="form-item">
-          <label>结课时间</label>
-          <input type="date" v-model="newSubject.endTime" required>
-        </div>
-        <div class="form-btn">
-          <button type="button" @click="$emit('close')">取消</button>
-          <button type="submit">发布</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <el-dialog
+    title="发布新课程"
+    :visible="true"
+    @close="$emit('close')"
+    width="600px"
+    custom-class="publish-dialog"
+  >
+    <el-form
+      ref="publishForm"
+      :model="newSubject"
+      :rules="rules"
+      label-width="80px"
+      label-position="right"
+    >
+      <el-form-item label="标题" prop="title">
+        <el-input
+          v-model="newSubject.title"
+          placeholder="请输入课程标题"
+        ></el-input>
+      </el-form-item>
+
+      <el-form-item label="简介" prop="brief">
+        <el-input
+          type="textarea"
+          v-model="newSubject.brief"
+          :rows="4"
+          placeholder="请输入课程简介"
+        ></el-input>
+      </el-form-item>
+
+      <el-form-item label="封面图片" prop="pic">
+        <el-upload
+          class="cover-uploader"
+          action="/admin/common/upload"
+          :show-file-list="false"
+          :on-success="handleUploadSuccess"
+          :on-error="handleUploadError"
+          :before-upload="beforeUpload"
+        >
+          <img v-if="imageUrl" :src="imageUrl" class="cover-image">
+          <i v-else class="el-icon-plus cover-icon"></i>
+          <div slot="tip" class="el-upload__tip">
+            只能上传一张jpg/jpeg/png格式图片，且不超过5MB
+          </div>
+        </el-upload>
+      </el-form-item>
+
+      <el-form-item label="开课班级" prop="classId">
+        <el-select
+          v-model="newSubject.classId"
+          placeholder="请选择班级"
+          style="width: 100%"
+        >
+          <el-option
+            v-for="item in classList"
+            :key="item.classId"
+            :label="item.className"
+            :value="item.classId"
+          ></el-option>
+        </el-select>
+      </el-form-item>
+
+      <el-form-item label="结课时间" prop="endTime">
+        <el-date-picker
+          v-model="newSubject.endTime"
+          type="date"
+          placeholder="选择结课时间"
+          style="width: 100%"
+          :picker-options="pickerOptions"
+        ></el-date-picker>
+      </el-form-item>
+    </el-form>
+
+    <span slot="footer" class="dialog-footer">
+      <el-button @click="$emit('close')">取 消</el-button>
+      <el-button type="primary" @click="handlePublish">发 布</el-button>
+    </span>
+  </el-dialog>
 </template>
 
 <script>
+import { reqGetAllClassList } from '@/api/activity/myClass'
+import { reqAddOrUpdateSubject } from '@/api/activity/subject'
+import { mapState } from 'vuex'
+
 export default {
   name: 'PublishSubject',
   data() {
     return {
+      imageUrl: '',
       classList: [],
       newSubject: {
         title: '',
         brief: '',
-        coverImg: '',
+        pic: '',
         classId: '',
-        endTime: ''
+        endTime: '',
+      },
+      pickerOptions: {
+        disabledDate(time) {
+          return time.getTime() < Date.now() - 8.64e7 // 不能选择今天之前的日期
+        }
+      },
+      rules: {
+        title: [
+          { required: true, message: '请输入课程标题', trigger: 'blur' },
+          { min: 2, max: 50, message: '长度在 2 到 50 个字符', trigger: 'blur' }
+        ],
+        brief: [
+          { required: true, message: '请输入课程简介', trigger: 'blur' },
+          { min: 10, max: 500, message: '长度在 10 到 500 个字符', trigger: 'blur' }
+        ],
+        classId: [
+          { required: true, message: '请选择开课班级', trigger: 'change' }
+        ],
+        endTime: [
+          { type: 'date', required: true, message: '请选择结课时间', trigger: 'change' }
+        ]
       }
     }
   },
+  computed: {
+    ...mapState("user", ["accountId", "auth"]),
+  },
   created() {
-    this.fetchClassList();
+    this.fetchClassList()
   },
   methods: {
     async fetchClassList() {
-      // TODO: 请求后端接口获取班级列表
-      // 暂时使用模拟数据
-      this.classList = [
-        { id: 1, name: '计算机1班' },
-        { id: 2, name: '计算机2班' }
-      ];
+      if(this.auth != 2) {
+        return
+      }
+      try {
+        const res = await reqGetAllClassList(this.accountId)
+        if(res.code == 200) {
+          this.classList = res.data
+        }
+      } catch(err) {
+        this.$message.error('获取班级列表失败')
+      }
     },
-    handleCoverUpload(e) {
-      // TODO: 上传封面图片到服务器，获取图片url
-      const file = e.target.files[0];
-      console.log(file);
-      this.newSubject.coverImg = 'uploaded.png';
+    beforeUpload(file) {
+      const isValidType = ['image/jpeg', 'image/png'].includes(file.type)
+      const isLt5M = file.size / 1024 / 1024 < 5
+
+      if (!isValidType) {
+        this.$message.error('上传文件只能是 jpg/jpeg/png 格式!')
+        return false
+      }
+      if (!isLt5M) {
+        this.$message.error('上传文件大小不能超过 5MB!')
+        return false
+      }
+      return true
+    },
+    handleUploadSuccess(response) {
+      if (response.code === 200) {
+        this.imageUrl = response.data // 显示预览
+        this.newSubject.pic = response.data // 保存图片URL
+        this.$message.success('图片上传成功')
+      } else {
+        this.$message.error('图片上传失败')
+      }
+    },
+    handleUploadError(err) {
+      this.$message.error('图片上传失败: ' + (err.message || '未知错误'))
     },
     async handlePublish() {
-      // TODO: 请求后端接口发布课程
-      console.log(this.newSubject);
-
-      // TODO: 处理发布成功，关闭弹窗，刷新列表
-      this.$emit('publish-success');
-      this.$emit('close');
+      this.$refs.publishForm.validate(async (valid) => {
+        if (valid) {
+          try {
+            if(this.auth != 2) {
+              return
+            }
+            this.newSubject.teacherId = this.accountId
+            const res = await reqAddOrUpdateSubject(this.newSubject)
+            if (res.code === 200) {
+              this.$message.success('发布成功')
+              this.$emit('publish-success')
+              this.$emit('close')
+            } else {
+              this.$message.error(res.message || '发布失败')
+            }
+          } catch (error) {
+            this.$message.error('发布失败，请重试')
+          }
+        }
+      })
     }
   }
 }
 </script>
 
 <style scoped>
-.publish-subject {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 100;
+.publish-dialog {
+  border-radius: 8px;
 }
-.modal {
-  width: 500px;
-  background: #fff;
-  border-radius: 5px;
-  padding: 20px;
-}
-.form-item {
-  margin: 10px;
-}
-.form-item label {
+
+.cover-uploader {
+  border: 1px dashed #d9d9d9;
+  border-radius: 6px;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+  width: 178px;
+  height: 178px;
   display: block;
-  margin-bottom: 5px;
 }
-.form-btn {
-  text-align: right;
-  padding: 10px;
+
+.cover-uploader:hover {
+  border-color: #409EFF;
 }
-.form-btn button {
-  margin-left: 15px;
+
+.cover-icon {
+  font-size: 28px;
+  color: #8c939d;
+  width: 178px;
+  height: 178px;
+  line-height: 178px;
+  text-align: center;
+}
+
+.cover-image {
+  width: 178px;
+  height: 178px;
+  display: block;
+  object-fit: cover;
+}
+
+:deep(.el-dialog__body) {
+  padding: 20px 30px;
+}
+
+:deep(.el-form-item__label) {
+  font-weight: 500;
+}
+
+.el-upload__tip {
+  margin-top: 8px;
+  color: #909399;
+  font-size: 12px;
+  line-height: 1.4;
+  position: absolute;
+  left: 190px;
+  top: 0;
 }
 </style>

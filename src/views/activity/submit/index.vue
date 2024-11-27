@@ -66,10 +66,10 @@ export default {
         teacherId: null,
         studentId: null
       }
-      if (this.auth === 0) {
+      if (this.auth == 0) {
         homeworkTotalInfo.studentId = this.accountId
       }
-      if (this.auth === 3 || this.auth === 2 || this.auth === 1) {
+      if (this.auth == 2 ) {
         homeworkTotalInfo.teacherId = this.accountId
       }
       reqGetSubmitInfoList(homeworkTotalInfo).then(res => {

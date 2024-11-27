@@ -3,11 +3,13 @@
     <el-row :gutter="20">
       <el-col :span="16">
         <div class="player-wrap">
-          <video-player
-            ref="videoPlayer"
-            :options="playerOptions"
-            class="video-player"
-          />
+          <div class="player-container">
+            <video-player
+              ref="videoPlayer"
+              :options="playerOptions"
+              class="video-player"
+            />
+          </div>
         </div>
       </el-col>
       <el-col :span="8">
@@ -39,8 +41,6 @@
 <script>
 import 'video.js/dist/video-js.css'
 import 'vue-video-player/src/custom-theme.css'
-import 'videojs-contrib-hls'
-import 'videojs-contrib-media-sources'
 import { videoPlayer } from 'vue-video-player'
 
 export default {
@@ -52,10 +52,11 @@ export default {
     return {
       playerOptions: {
         sources: [{
-          src: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/2024-11-26%2019-18-37.mkv',
-          type: 'video/x-matroska'
+          src: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/annoriki.mp4',
+          type: 'video/mp4'
         }],
         autoplay: false,
+        fluid: true,
         controlBar: {
           timeDivider: true,
           durationDisplay: true,
@@ -84,7 +85,7 @@ export default {
           is_father: 1,
           father_chapter_id: null,
           title: '第一章 绪论',
-          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/2024-11-26%2019-18-37.mkv',
+          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/annoriki.mp4',
           duration: 1800
         },
         {
@@ -94,7 +95,7 @@ export default {
           is_father: 0,
           father_chapter_id: 1,
           title: '1.1 什么是形势与政策',
-          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/2024-11-26%2019-18-37.mkv',
+          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/annoriki.mp4',
           duration: 1800
         },
         {
@@ -104,7 +105,7 @@ export default {
           is_father: 0,
           father_chapter_id: 1,
           title: '1.2 学习形势与政策的重要意义',
-          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/2024-11-26%2019-18-37.mkv',
+          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/annoriki.mp4',
           duration: 2100
         },
         {
@@ -122,7 +123,7 @@ export default {
           is_father: 0,
           father_chapter_id: 4,
           title: '2.1 中美建交历程',
-          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/2024-11-26%2019-18-37.mkv',
+          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/annoriki.mp4',
           duration: 1500
         },
         {
@@ -132,11 +133,10 @@ export default {
           is_father: 0,
           father_chapter_id: 4,
           title: '2.2 中美贸易摩擦',
-          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/2024-11-26%2019-18-37.mkv',
+          url: 'https://bilibilipropost.oss-cn-beijing.aliyuncs.com/annoriki.mp4',
           duration: 1980
         }
       ];
-
       const generateTree = (list, fatherId) => {
         return list
           .filter(item => item.father_chapter_id === fatherId)
@@ -153,7 +153,6 @@ export default {
       if (!data.is_father) {
         this.playerOptions.sources[0].src = data.url;
 
-        // 确保videoPlayer存在且已经初始化完成
         this.$nextTick(() => {
           if (this.$refs.videoPlayer && this.$refs.videoPlayer.player) {
             this.$refs.videoPlayer.player.load();
@@ -175,9 +174,23 @@ export default {
 .chapter-detail {
   padding: 20px;
 }
-.video-player {
+.player-wrap {
   width: 100%;
-  height: 600px;
+  padding-top: 56.25%; /* 16:9 宽高比 */
+  position: relative;
+}
+.player-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden; /* 添加此行,避免视频溢出 */
+}
+.video-player {
+  width: 100% !important; /* 添加 !important 以确保样式优先级 */
+  height: 100% !important;
+  object-fit: cover; /* 添加此行,保持视频纵横比并填充容器 */
 }
 .chapter-list {
   max-height: 600px;

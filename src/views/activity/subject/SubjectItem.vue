@@ -1,21 +1,51 @@
 <template>
-  <div class="subject-item">
-    <img class="item-cover" :src="subject.coverImg" alt="Cover" />
+  <router-link :to="subjectDetailLink" class="course-link">
+    <el-card
+      :body-style="{ padding: '0px' }"
+      shadow="hover"
+      class="course-card"
+    >
+      <el-image
+        :src="subject.pic"
+        fit="cover"
+        class="course-image"
+      >
+        <div slot="error" class="image-slot">
+          <i class="el-icon-picture-outline"></i>
+        </div>
+      </el-image>
 
-    <div class="item-info">
-      <router-link :to="subjectDetailLink">
-        <h3 class="item-title">{{ subject.title }}</h3>
-      </router-link>
-      <div class="item-bottom">
-        <p class="item-brief">{{ subject.brief }}</p>
-        <p class="item-teacher">教师: {{ subject.teacherName }}</p>
-        <div class="item-time">
-          <span>开课至 {{ subject.endTime }}</span>
+      <div class="course-info">
+        <h3 class="course-title">{{ subject.title }}</h3>
+        <el-tooltip
+          :content="subject.brief"
+          placement="top"
+          :disabled="!isOverflow"
+        >
+          <p
+            class="course-brief"
+            ref="briefContent"
+            @mouseenter="checkOverflow"
+          >{{ subject.brief }}</p>
+        </el-tooltip>
+        <div class="course-footer">
+          <div class="course-tags">
+            <el-tag size="small" type="info" class="teacher-tag">
+              <i class="el-icon-user"></i>
+              {{ subject.teacherName }}
+            </el-tag>
+            <el-tag size="small" type="success" class="class-tag">
+              {{ subject.className }}
+            </el-tag>
+          </div>
+          <el-tag size="small" type="warning">
+            <i class="el-icon-time"></i>
+            截止: {{ formatEndTime(subject.endTime) }}
+          </el-tag>
         </div>
       </div>
-    </div>
-
-  </div>
+    </el-card>
+  </router-link>
 </template>
 
 <script>
@@ -29,45 +59,123 @@ export default {
   },
   computed: {
     subjectDetailLink() {
-      return `/subject-detail/${this.subject.id}`;
+      return `/subject-detail/${this.subject.id}`
+    }
+  },
+  methods: {
+    formatEndTime(dateStr) {
+      if (!dateStr) return '未设置'
+      const date = new Date(dateStr)
+      return `${date.getMonth() + 1}/${date.getDate()}`
     }
   }
 }
 </script>
 
 <style scoped>
-.subject-item {
-  width: 300px;
-  margin: 15px;
-  padding: 15px;
-  border-radius: 10px;
-  background: #fff;
-  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+.course-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  margin-bottom: 20px;
 }
-.item-cover {
+
+.course-card {
+  transition: all 0.3s;
+  height: 100%;
+}
+
+.course-card:hover {
+  transform: translateY(-5px);
+}
+
+.course-image-container {
   width: 100%;
-  height: 170px;
-  object-fit: cover;
-  border-radius: 5px;
+  height: 160px;
+  background-color: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.item-title {
-  font-size: 18px;
-  margin: 10px 0;
+
+.default-image {
+  font-size: 60px;
+  color: #909399;
 }
-.item-bottom {
-  padding-top: 10px;
-  border-top: 1px solid #eee;
+
+.course-info {
+  padding: 14px;
 }
-.item-brief {
-  font-size: 14px;
-  margin-bottom: 10px;
+
+.course-title {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+  margin-bottom: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #303133;
+}
+
+.course-brief {
+  font-size: 13px;
   color: #666;
+  margin: 8px 0;
+  height: 40px; /* 稍微增加高度以确保两行完整显示 */
+  line-height: 20px; /* 确保每行高度一致 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-all; /* 确保长单词也会换行 */
 }
-.item-teacher {
-  font-size: 14px;
-  color: #999;
+
+/* 添加提示图标 */
+.course-brief:hover {
+  cursor: pointer;
 }
-.item-time {
-  text-align: right;
+
+
+.course-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.course-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.course-image {
+  width: 100%;
+  height: 160px;
+  display: block;
+}
+
+
+.teacher-tag, .class-tag {
+  margin-right: 5px;
+}
+
+.image-slot {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  background: #f5f7fa;
+  color: #909399;
+  font-size: 30px;
+}
+
+:deep(.el-card__body) {
+  padding: 0;
 }
 </style>
