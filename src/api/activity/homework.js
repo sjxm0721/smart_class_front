@@ -1,11 +1,11 @@
 import request from '@/utils/request' //引入封装后ajax
 
 
-export const reqGetHomeWorkInfoList=(teacherId,input)=>{
+export const reqGetHomeWorkInfoList=(teacherId,studentId,input)=>{
     return request({
         url:'/homework/list-ts',
         method:'get',
-      params:{teacherId,input},
+      params:{teacherId,studentId,input},
     })
 }
 
@@ -22,5 +22,14 @@ export const reqAddHomework=(homeworkInfo)=>{
     url:'/homework/add',
     method:'post',
     data:homeworkInfo
+  })
+}
+
+
+export const reqGetHomeWorkList=(subjectId)=>{
+  return request({
+    url:'/homework/list',
+    method:'get',
+    params:{subjectId},
   })
 }

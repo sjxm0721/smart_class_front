@@ -122,27 +122,27 @@
           @selection-change="handleSelectionChange"
         >
           <el-table-column type="selection" width="55"> </el-table-column>
-          <el-table-column fixed prop="studentName" label="姓名" width="120">
+          <el-table-column fixed prop="name" label="姓名" width="120">
           </el-table-column>
-          <el-table-column prop="studentIdNumber" label="学号" width="120">
+          <el-table-column prop="userId" label="学号" width="120">
           </el-table-column>
-          <el-table-column label="性别" width="90">
-            <template slot-scope="{ row, $index }">
-              <span v-if="row.studentSex == 0">男</span>
-              <span v-else>女</span>
-            </template>
+<!--          <el-table-column label="性别" width="90">-->
+<!--            <template slot-scope="{ row, $index }">-->
+<!--              <span v-if="row.studentSex == 0">男</span>-->
+<!--              <span v-else>女</span>-->
+<!--            </template>-->
+<!--          </el-table-column>-->
+<!--          <el-table-column prop="studentAge" label="年龄" width="90">-->
+<!--          </el-table-column>-->
+<!--          <el-table-column label="是否近视" width="120">-->
+<!--            <template slot-scope="{ row, $index }">-->
+<!--              <el-tag type="warning" v-if="row.shortSighted == 1">近视</el-tag>-->
+<!--              <el-tag type="success" v-else>未近视</el-tag>-->
+<!--            </template>-->
+<!--          </el-table-column>-->
+          <el-table-column prop="schoolName" label="学校" width="120">
           </el-table-column>
-          <el-table-column prop="studentAge" label="年龄" width="90">
-          </el-table-column>
-          <el-table-column label="是否近视" width="120">
-            <template slot-scope="{ row, $index }">
-              <el-tag type="warning" v-if="row.shortSighted == 1">近视</el-tag>
-              <el-tag type="success" v-else>未近视</el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="ssValue" label="近视度数" width="120">
-          </el-table-column>
-          <el-table-column prop="testNum" label="测试次数" width="120">
+          <el-table-column prop="className" label="班级" width="120">
           </el-table-column>
           <el-table-column prop="phone" label="电话" width="180">
           </el-table-column>
@@ -269,8 +269,8 @@ export default {
     getStudentInfoList() {
       let studentTotalInfo = {
         classId: this.selectClass,
-        studentName: this.studentName,
-        studentIdNumber: this.studentIdNumber,
+        name: this.studentName,
+        userId: this.studentIdNumber,
       };
       this.$store
         .dispatch("student/getStudentInfoList", studentTotalInfo)

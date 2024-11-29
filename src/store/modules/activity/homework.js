@@ -19,8 +19,8 @@ const mutations={
 
 const actions={
     async getHomeWorkInfoList({commit},homeworkTotalInfo){
-        const {teacherId,input} = homeworkTotalInfo;
-        let result=await reqGetHomeWorkInfoList(teacherId,input);
+        const {teacherId,studentId,input} = homeworkTotalInfo;
+        let result=await reqGetHomeWorkInfoList(teacherId,studentId,input);
         if(result.code===200){
             commit('SET_HOMEWORK_INFO_LIST',result.data);
         }

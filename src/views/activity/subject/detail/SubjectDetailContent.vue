@@ -4,6 +4,17 @@
       <el-row>
         <el-col :span="4">
           <div class="subject-menu-wrap">
+            <!-- 添加返回首页按钮 -->
+            <div class="home-button-wrap">
+              <el-button
+                type="primary"
+                icon="el-icon-s-home"
+                @click="goToHome"
+                plain
+                class="home-button">
+                返回首页
+              </el-button>
+            </div>
             <el-menu
               :default-active="currentTab"
               class="subject-menu"
@@ -103,6 +114,9 @@ export default {
     },
     switchTab(tab) {
       this.currentTab = tab
+    },
+    goToHome() {
+      this.$router.push('/')
     }
   }
 }
@@ -134,5 +148,43 @@ export default {
 
 .subject-content-wrap {
   padding: 20px;
+}
+
+/* 新增样式 */
+.home-button-wrap {
+  padding: 0 20px 20px 20px;
+  border-bottom: 1px solid #e4e7ed;
+  margin-bottom: 10px;
+}
+
+.home-button {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.home-button i {
+  margin-right: 5px;
+}
+
+/* 优化菜单样式 */
+.subject-menu {
+  margin-top: 10px;
+}
+
+.subject-menu .el-menu-item {
+  font-size: 14px;
+  height: 45px;
+  line-height: 45px;
+}
+
+.subject-menu .el-menu-item:hover {
+  background-color: #ecf5ff;
+}
+
+.subject-menu .el-menu-item.is-active {
+  color: #409EFF;
+  background-color: #ecf5ff;
 }
 </style>

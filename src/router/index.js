@@ -170,6 +170,16 @@ export const constantRoutes = [
         path:"chapter/:chapterId?",
         name:"ChapterDetail",
         component:()=>import("@/views/activity/subject/detail/chapter"),
+      },
+      {
+        path:"homework/:homeworkId?",
+        name:"SubjectHomeworkDetail",
+        component:()=>import("@/views/activity/subject/detail/homework")
+      },
+      {
+        path: "homework/add",
+        name:"SubjectHomeworkAdd",
+        component:()=>import("@/views/activity/subject/detail/homework/add.vue")
       }
     ],
   },

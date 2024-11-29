@@ -74,7 +74,7 @@
 import { reqGetHomeWorkInfo } from '@/api/activity/homework'
 
 export default {
-  name: 'HomeWorkDetail',
+  name: 'SubjectHomeworkDetail',
   data() {
     return {
       homework: {

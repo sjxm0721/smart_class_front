@@ -1,18 +1,18 @@
 import request from '@/utils/request'
 
-export const reqGetStudentInfoList=(classId,studentName,studentIdNumber)=>{
+export const reqGetStudentInfoList=(classId,name,userId)=>{
     return request({
         url:'/student/list',
         method:'get',
-        params:{classId,studentName,studentIdNumber}
+        params:{classId,name,userId}
     })
 }
 
-export const reqGetStudentInfoById=(studentId)=>{
+export const reqGetStudentInfoById=(accountId)=>{
     return request({
         url:'/student/info',
         method:'get',
-        params:{studentId}
+        params:{accountId}
     })
 }
 

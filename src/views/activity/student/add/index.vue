@@ -7,47 +7,18 @@
         :rules="formRules"
         label-width="80px"
       >
-        <el-form-item label="学生姓名" prop="studentName">
+        <el-form-item label="学生姓名" prop="name">
           <el-input
-            v-model="studentInfo.studentName"
+            v-model="studentInfo.name"
             placeholder="请输入学生姓名"
             style="width: 150px"
           ></el-input>
         </el-form-item>
-        <el-form-item label="学生学号" prop="studentIdNumber">
+        <el-form-item label="学生学号" prop="userId">
           <el-input
-            v-model="studentInfo.studentIdNumber"
+            v-model="studentInfo.userId"
             placeholder="请输入学生学号"
             style="width: 200px"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="学生性别" prop="studentSex">
-          <el-radio-group v-model="studentInfo.studentSex">
-            <el-radio :label="0">男</el-radio>
-            <el-radio :label="1">女</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="学生年龄" prop="studentAge">
-          <el-input
-            type="number"
-            v-model.number="studentInfo.studentAge"
-            placeholder="请输入学生年龄"
-            style="width: 150px"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="是否近视" prop="shortSighted">
-          <el-radio-group v-model="studentInfo.shortSighted">
-            <el-radio :label="0">不近视</el-radio>
-            <el-radio :label="1">近视</el-radio>
-          </el-radio-group>
-        </el-form-item>
-        <el-form-item label="近视度数" prop="ssValue">
-          <el-input
-            type="number"
-            v-model.number="studentInfo.ssValue"
-            placeholder="请输入近视度数"
-            :step="0.1"
-            style="width: 150px"
           ></el-input>
         </el-form-item>
         <el-form-item label="电话" prop="phone">
@@ -91,33 +62,20 @@ export default {
     };
     return {
       studentInfo: {
-        studentId: null,
-        studentName: "",
-        studentIdNumber: "",
+        accountId: null,
+        name: "",
+        userId: "",
         schoolId: null,
         classId: null,
-        studentAge: null,
-        studentSex: null,
         phone: "",
         email: "",
-        shortSighted: null,
-        ssValue: null,
       },
       formRules: {
-        studentName: [
+        name: [
           { required: true, message: "请输入学生姓名", trigger: "blur" },
         ],
-        studentIdNumber: [
+        userId: [
           { required: true, message: "请输入学生学号", trigger: "blur" },
-        ],
-        studentAge: [
-          { required: true, message: "请输入学生年龄", trigger: "blur" },
-        ],
-        studentSex: [
-          { required: true, message: "请选择学生性别", trigger: "blur" },
-        ],
-        shortSighted: [
-          { required: true, message: "请选择是否近视", trigger: "blur" },
         ],
         phone: [{ required: true, message: "请输入11位手机号", trigger: "blur" ,validator:validatePhone}],
       },
@@ -130,7 +88,7 @@ export default {
     submitStudent(type) {
       this.$refs.studentInfo.validate((valid) => {
         if (valid) {
-          if (this.studentInfo.studentId == null) {
+          if (this.studentInfo.accountId == null) {
             //新增
             this.$store
               .dispatch("student/addStudent", this.studentInfo)
@@ -142,15 +100,11 @@ export default {
                 if (type == 1) {
                   this.$router.push("/student");
                 } else {
-                  this.studentInfo.studentId = null;
-                  this.studentInfo.studentName = "";
-                  this.studentInfo.studentIdNumber = "";
-                  this.studentInfo.studentAge = null;
-                  this.studentInfo.studentSex = null;
+                  this.studentInfo.accountId = null;
+                  this.studentInfo.name = "";
+                  this.studentInfo.userId = "";
                   this.studentInfo.phone = "";
                   this.studentInfo.email = "";
-                  this.studentInfo.shortSighted = null;
-                  this.studentInfo.ssValue = null;
                 }
               }).catch((err)=>[
                 this.$message({
@@ -170,15 +124,11 @@ export default {
                 if (type == 1) {
                   this.$router.push("/student");
                 } else {
-                  this.studentInfo.studentId = null;
-                  this.studentInfo.studentName = "";
-                  this.studentInfo.studentIdNumber = "";
-                  this.studentInfo.studentAge = null;
-                  this.studentInfo.studentSex = null;
+                  this.studentInfo.accountId = null;
+                  this.studentInfo.name = "";
+                  this.studentInfo.userId = "";
                   this.studentInfo.phone = "";
                   this.studentInfo.email = "";
-                  this.studentInfo.shortSighted = null;
-                  this.studentInfo.ssValue = null;
                 }
               }).catch((err)=>[
                 this.$message({
@@ -192,18 +142,14 @@ export default {
         }
       });
     },
-    async getStudentInfo(studentId) {
-      let result = await this.$API.student.reqGetStudentInfoById(studentId);
+    async getStudentInfo(accountId) {
+      let result = await this.$API.student.reqGetStudentInfoById(accountId);
       if (result.code == 200) {
-        this.studentInfo.studentId = result.data["studentId"];
-        this.studentInfo.studentName = result.data["studentName"];
-        this.studentInfo.studentIdNumber = result.data["studentIdNumber"];
-        this.studentInfo.studentSex = result.data["studentSex"];
-        this.studentInfo.studentAge = result.data["studentAge"];
+        this.studentInfo.accountId = result.data["accountId"];
+        this.studentInfo.name = result.data["name"];
+        this.studentInfo.userId = result.data["userId"];
         this.studentInfo.phone = result.data["phone"];
         this.studentInfo.email = result.data["email"];
-        this.studentInfo.shortSighted = result.data["shortSighted"];
-        this.studentInfo.ssValue = result.data["ssValue"];
         return "ok";
       } else return Promise.reject(new Error(result.msg));
     },

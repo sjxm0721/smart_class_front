@@ -27,8 +27,8 @@ const mutations={
 
 const actions={
     async getStudentInfoList({commit},studentTotalInfo){
-        const {classId,studentName,studentIdNumber} = studentTotalInfo;
-        let result=await reqGetStudentInfoList(classId,studentName,studentIdNumber);
+        const {classId,name,userId} = studentTotalInfo;
+        let result=await reqGetStudentInfoList(classId,name,userId);
         if(result.code==200){
             commit('SET_STUDENT_INFO_LIST',result.data);
         }

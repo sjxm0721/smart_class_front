@@ -70,7 +70,6 @@ export default {
   created(){
     const savedAuth = crypto.Decrypt(localStorage.getItem('user_auth'));
     this.auth=savedAuth;
-    console.log(this.item.meta.auth,"-",this.auth)
   },
   methods: {
     hasOneShowingChild(children = [], parent) {
