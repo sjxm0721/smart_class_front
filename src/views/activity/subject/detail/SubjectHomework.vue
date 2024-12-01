@@ -13,7 +13,7 @@
     </div>
     <el-row :gutter="20">
       <el-col :span="8" v-for="homework in homeworks" :key="homework.id">
-        <el-card shadow="hover" @click.native="goToHomeworkDetail(homework.id)">
+        <el-card shadow="hover">
           <div slot="header" class="clearfix">
             <el-tooltip class="item" effect="dark" :content="homework.title" placement="top">
               <span class="homework-title">{{ homework.title }}</span>
@@ -32,7 +32,9 @@
             </p>
           </div>
           <div class="homework-actions">
-            <el-button v-if="auth !== 2" type="primary" size="small">提交作业</el-button>
+            <el-button v-if="checkHomeworkBtn()" type="primary" size="small" @click.native="goToHomeworkDetail(homework.id)">查看作业</el-button>
+            <el-button v-if="submitHomeworkBtn(homework)" type="primary" size="small" @click.native="goToHomeworkDetail(homework.id)">提交作业</el-button>
+            <el-button v-if="allreadySubmitBtn(homework)" type="warning" size="small" disabled>已提交</el-button>
           </div>
         </el-card>
       </el-col>
@@ -93,13 +95,41 @@ export default {
       return `${year}-${month}-${day} ${hours}:${minutes}`
     },
     async fetchHomeworkList() {
-      reqGetHomeWorkList(this.$route.params.subjectId).then((res) => {
+      let studentId = null
+      if(this.auth==0){
+        studentId = this.accountId
+      }
+      reqGetHomeWorkList(this.$route.params.subjectId,studentId).then((res) => {
         if (res.code == 200) {
           this.homeworks = res.data
         }
       }).catch((err) => {
         console.error(err)
       })
+    },
+    checkHomeworkBtn(){
+      if(this.auth==2){
+        return true;
+      }
+      else{
+        return false;
+      }
+    },
+    submitHomeworkBtn(homework){
+      if(this.auth==0&&homework.sstatus==0){
+        return true;
+      }
+      else{
+        return false;
+      }
+    },
+    allreadySubmitBtn(homework){
+      if(this.auth==0&&homework.sstatus==1){
+        return true;
+      }
+      else{
+        return false;
+      }
     },
     goToHomeworkDetail(homeworkId) {
       this.$router.push({
@@ -136,7 +166,7 @@ export default {
 <style scoped>
 .subject-homework .el-card {
   margin-bottom: 20px;
-  cursor: pointer;
+  //cursor: pointer;
 }
 
 .subject-homework .el-card__header {

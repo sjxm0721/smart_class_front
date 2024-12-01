@@ -16,6 +16,8 @@
     <!-- 作业提交列表 -->
     <el-table :data="submits" style="width: 100%">
       <el-table-column prop="homeworkTitle" label="作业标题"></el-table-column>
+      <el-table-column prop="subjectName" label="课程"></el-table-column>
+      <el-table-column prop="studentName" v-if="auth==2" label="学生姓名"></el-table-column>
       <el-table-column prop="submitTime" label="提交时间"></el-table-column>
       <el-table-column label="批改状态">
         <template slot-scope="scope">

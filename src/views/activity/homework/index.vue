@@ -73,7 +73,7 @@
             fixed
             prop="title"
             label="作业名称"
-            min-width="180"
+            min-width="150"
             show-overflow-tooltip
           />
           <el-table-column
@@ -85,6 +85,12 @@
           <el-table-column
             prop="className"
             label="班级"
+            min-width="120"
+            show-overflow-tooltip
+          />
+          <el-table-column
+            prop="subjectName"
+            label="课程名"
             min-width="120"
             show-overflow-tooltip
           />
@@ -115,7 +121,7 @@
           <el-table-column
             fixed="right"
             label="操作"
-            width="280"
+            width="200"
             align="center"
           >
             <template slot-scope="{ row }">
@@ -128,14 +134,6 @@
                 >
                   详情
                 </el-button>
-                <el-button
-                  type="warning"
-                  size="mini"
-                  plain
-                  @click="editHomework(row)"
-                >
-                  修改
-                </el-button>
                 <el-popconfirm
                   title="确定删除该作业吗？"
                   @onConfirm="deleteHomework(row)"
@@ -144,6 +142,7 @@
                     slot="reference"
                     type="danger"
                     size="mini"
+                    v-if="auth==2"
                     plain
                   >
                     删除
@@ -212,7 +211,6 @@ export default {
         });
     },
     handleSelectionChange() {},
-    editHomework(row) {},
     deleteHomework(row) {},
     toggleSelected() {},
     deleteSelected() {},

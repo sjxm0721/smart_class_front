@@ -16,3 +16,12 @@ export const reqGetSubmitInfo=(submitId)=>{
     params:{submitId},
   })
 }
+
+
+export const reqAddSubmit=(submitInfo) => {
+  return request({
+    url:'/submit/add',
+    method:'post',
+    data:submitInfo
+  })
+}

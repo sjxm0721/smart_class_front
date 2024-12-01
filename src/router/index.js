@@ -124,21 +124,6 @@ export const constantRoutes = [
     ]
   },
 
-  //设备管理
-  {
-    path:"/device",
-    component: Layout,
-    meta:{auth:['1','2']},
-    children:[
-      {
-        path:"",
-        name:"Device",
-        component:()=>import("@/views/activity/device"),
-        meta:{title:'设备管理',icon:'device'}
-      }
-    ]
-  },
-
   //课程
   {
     path:"/subject",
@@ -182,6 +167,22 @@ export const constantRoutes = [
         component:()=>import("@/views/activity/subject/detail/homework/add.vue")
       }
     ],
+  },
+
+
+  //设备管理
+  {
+    path:"/device",
+    component: Layout,
+    meta:{auth:['1','2']},
+    children:[
+      {
+        path:"",
+        name:"Device",
+        component:()=>import("@/views/activity/device"),
+        meta:{title:'设备管理',icon:'device'}
+      }
+    ]
   },
 
 
@@ -242,36 +243,17 @@ export const constantRoutes = [
         path:"",
         name:"Submit",
         component:()=>import("@/views/activity/submit"),
-        meta:{title:'作业批改',icon:"myClass"}
+        meta:{title:'作业提交',icon:"myClass"}
       },{
         path:"detail/:submitId?",
         name:"SubmitDetail",
         component:()=>import("@/views/activity/submit/detail"),
-        meta:{title:"作业批改详情"},
+        meta:{title:"作业提交详情"},
         hidden: true,
       }
     ]
   },
 
-  {
-    path:"/resource",
-    component: Layout,
-    meta:{auth:['0','1','2']},
-    children:[
-      {
-        path:"",
-        name:"Resource",
-        component:()=>import("@/views/activity/resource"),
-        meta:{title:'资源管理',icon:'student'}
-      },{
-        path:"detail/:detailId?",
-        name:"ResourceDetail",
-        component:()=>import("@/views/activity/resource/detail"),
-        meta:{title:"资源详情"},
-        hidden: true,
-      }
-    ]
-  },
 
 
   // 404 page must be placed at the end !!!

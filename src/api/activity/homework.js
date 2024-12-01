@@ -26,10 +26,10 @@ export const reqAddHomework=(homeworkInfo)=>{
 }
 
 
-export const reqGetHomeWorkList=(subjectId)=>{
+export const reqGetHomeWorkList=(subjectId,studentId)=>{
   return request({
     url:'/homework/list',
     method:'get',
-    params:{subjectId},
+    params:{subjectId,studentId},
   })
 }

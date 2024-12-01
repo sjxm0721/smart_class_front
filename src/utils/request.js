@@ -8,7 +8,7 @@ import { getToken } from '@/utils/auth'
 const service = axios.create({
   baseURL: process.env.VUE_APP_BASE_API, // url = base url + request url
   // withCredentials: true, // send cookies when cross-domain requests
-  timeout: 5000 // request timeout
+  timeout: 50000 // request timeout
 })
 
 // 请求拦截器 携带token字段
@@ -22,6 +22,9 @@ service.interceptors.request.use(
       // please modify it according to the actual situation
       config.headers['token'] = getToken()
     }
+    if (config.url.includes('/download') || config.url.includes('/downloadByRscName')) {
+      config.responseType = 'blob'
+    }
     return config
   },
   error => {
@@ -31,12 +34,12 @@ service.interceptors.request.use(
   }
 )
 
-// 响应拦截器  
+// 响应拦截器
 service.interceptors.response.use(
   /**
    * If you want to get http information such as headers or status
    * Please return  response => response
-  */
+   */
 
   /**
    * Determine the request status by custom code
@@ -44,10 +47,13 @@ service.interceptors.response.use(
    * You can also judge the status by HTTP Status Code
    */
   response => {
+    if (response.config.responseType === 'blob') {
+      return response.data
+    }
     const res = response.data
 
     // if the custom code is not 20000, it is judged as an error.
-    if (res.code !== 20000&&res.code!==200&&res.code!=0) {
+    if (res.code !== 20000 && res.code !== 200 && res.code != 0) {
       // Message({
       //   message: res.message || 'Error',
       //   type: 'error',

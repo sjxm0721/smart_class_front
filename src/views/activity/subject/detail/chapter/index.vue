@@ -1,5 +1,16 @@
 <template>
   <div class="chapter-detail">
+    <!-- 添加返回按钮区域 -->
+    <div class="page-header">
+      <el-button
+        type="default"
+        icon="el-icon-arrow-left"
+        size="small"
+        @click="goBack"
+      >
+        返回课程页面
+      </el-button>
+    </div>
     <el-row :gutter="20">
       <el-col :span="16">
         <div class="player-wrap">
@@ -96,6 +107,9 @@ export default {
     this.fetchChapterInfo()
   },
   methods: {
+    goBack(){
+      this.$router.push({ name: 'SubjectDetailContent', params: { subjectId: this.$route.params.subjectId } });
+    },
     onPlayerReady(player) {
       // 播放器初始化完成
       this.player = player
@@ -287,6 +301,56 @@ export default {
   .chapter-list {
     margin-top: 20px;
     max-height: 400px;
+  }
+}
+
+
+/* 添加返回按钮区域样式 */
+.page-header {
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.page-header .el-button {
+  padding: 8px 16px;
+}
+
+/* 调整原有的内容区域样式以适应新增的header */
+.chapter-detail {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: calc(100vh - 40px);
+  display: flex;
+  flex-direction: column;
+}
+
+/* 确保在添加header后视频播放器和章节列表的高度正确 */
+.player-wrap {
+  width: 100%;
+  padding-top: 56.25%;
+  position: relative;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  margin-top: 10px;
+}
+
+.chapter-list {
+  max-height: calc(100vh - 140px); /* 调整高度以适应新增的header */
+  overflow: auto;
+}
+
+/* 适配移动端样式 */
+@media screen and (max-width: 768px) {
+  .page-header {
+    margin-bottom: 15px;
+  }
+
+  .chapter-list {
+    max-height: 400px;
+    margin-top: 20px;
   }
 }
 </style>
