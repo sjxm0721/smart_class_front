@@ -25,3 +25,11 @@ export const reqAddSubmit=(submitInfo) => {
     data:submitInfo
   })
 }
+
+export const reqGiveComment=(data) => {
+  return request({
+    url:'/submit/give-comment',
+    method:'post',
+    data:data
+  })
+}

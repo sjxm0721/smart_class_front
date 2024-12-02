@@ -55,3 +55,12 @@ export const reqGetAllStudentList=(accountId)=>{
     params:{accountId},
   })
 }
+
+
+export const reqStudentExcelImport=(formData) => {
+  return request({
+    url:'/student/import',
+    method:'post',
+    data:formData
+  })
+}

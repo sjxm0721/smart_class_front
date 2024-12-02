@@ -159,6 +159,7 @@
 
 <script>
 import { mapState } from "vuex";
+import { reqDelHomework } from '@/api/activity/homework'
 
 export default {
   name: "HomeWork",
@@ -211,7 +212,9 @@ export default {
         });
     },
     handleSelectionChange() {},
-    deleteHomework(row) {},
+    async deleteHomework(row) {
+      await reqDelHomework(row.id)
+    },
     toggleSelected() {},
     deleteSelected() {},
     goToHomeworkDetail(row) {

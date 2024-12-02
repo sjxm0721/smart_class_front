@@ -39,6 +39,24 @@
           <el-button type="primary" @click="addOrEditDevice(null)"
             >添加设备<i class="el-icon-plus el-icon--right"></i
           ></el-button>
+
+          <!-- 新增批量导入功能 -->
+          <el-upload
+            class="upload-btn"
+            action="#"
+            :show-file-list="false"
+            :before-upload="beforeUpload"
+            :http-request="handleUpload"
+            accept=".xlsx,.xls"
+          >
+            <el-button type="warning" style="margin-left: 10px">
+              批量导入<i class="el-icon-upload el-icon--right"></i>
+            </el-button>
+          </el-upload>
+
+          <el-button type="info" style="margin-left: 10px" @click="downloadTemplate">
+            下载模板<i class="el-icon-download el-icon--right"></i>
+          </el-button>
         </div>
       </div>
       <div class="body-all">
@@ -101,7 +119,7 @@
                 >解绑班级</el-button
               >
               </el-popconfirm>
-             
+
               <el-button
                 type="success"
                 size="mini"
@@ -237,6 +255,7 @@
 <script>
 import { mapState } from "vuex";
 import crypto from "@/utils/crypto";
+import { reqDeviceExcelImport } from '@/api/activity/device'
 export default {
   name: "Device",
   computed: {
@@ -312,6 +331,7 @@ export default {
       currentPage: 1,
       dialogFormVisible: false,
       dialogFormVisible2: false,
+      uploadLoading: false
     };
   },
   methods: {
@@ -424,6 +444,9 @@ export default {
     },
     bindClass(row) {
       this.deviceInfo.deviceId = row.deviceId;
+      this.deviceInfo.deviceName = row.deviceName;
+      this.deviceInfo.isFault = row.isFault
+      this.deviceInfo.lastRepairTime = row.lastRepairTime
       if (row.schoolId == null) {
         this.$message({
           type: "error",
@@ -514,6 +537,61 @@ export default {
           });
         });
     },
+    async handleUpload({ file }) {
+      if (!this.selectSchool) {
+        this.$message.error('请先选择学校!');
+        return;
+      }
+
+      try {
+        this.uploadLoading = true;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('schoolId', this.selectSchool.toString());
+
+        const result = await reqDeviceExcelImport(formData);
+
+        if (result.code == 200) {
+          this.$message.success('导入成功');
+          // 刷新设备列表
+          this.getDevicePageInfo();
+        } else {
+          this.$message.error(result.msg || '导入失败');
+        }
+      } catch (error) {
+        this.$message.error('导入失败');
+        console.error('导入错误：', error);
+      } finally {
+        this.uploadLoading = false;
+      }
+    },
+
+    beforeUpload(file) {
+      const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.type === 'application/vnd.ms-excel';
+      const isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!isExcel) {
+        this.$message.error('只能上传Excel文件!');
+        return false;
+      }
+      if (!isLt2M) {
+        this.$message.error('文件大小不能超过 2MB!');
+        return false;
+      }
+
+      if (!this.selectSchool) {
+        this.$message.error('请先选择学校!');
+        return false;
+      }
+
+      return true;
+    },
+
+    downloadTemplate() {
+      // 替换成实际的模板下载地址
+      window.open('https://bilibilipropost.oss-cn-beijing.aliyuncs.com/device.xlsx', '_blank');
+    },
   },
   created() {
     if (this.isDisabled) {
@@ -552,6 +630,32 @@ export default {
 </script>
 
 <style>
+
+.border {
+  background-color: #fff;
+  margin: 20px;
+  padding: 20px;
+  border-radius: 10px;
+}
+
+/* 新增上传按钮样式 */
+.upload-btn {
+  display: inline-block;
+}
+
+.upload-btn .el-upload {
+  display: inline-block;
+}
+
+.header-right {
+  float: right;
+  display: flex;
+  align-items: center;
+}
+
+.header-right .el-button {
+  margin-bottom: 0;
+}
 .border {
   background-color: #fff;
   margin: 20px;

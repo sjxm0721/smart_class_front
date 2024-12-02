@@ -4,7 +4,7 @@
       <div class="body1-left">
         <span style="margin-left: 20px">学校名称：</span>
         <el-select
-          v-model="selectSchool"
+          v-model="selectedSchoolId"
           placeholder="请选择"
           style="width: 200px"
           :disabled="isDisabled1"
@@ -22,7 +22,7 @@
 
         <span style="margin-left: 20px">班级名称：</span>
         <el-select
-          v-model="selectClass"
+          v-model="selectedClassId"
           placeholder="请选择"
           style="width: 200px"
           :disabled="isDisabled2"
@@ -41,7 +41,7 @@
         <el-button type="info" plain @click="toResult">查看检测结果</el-button>
       </div>
     </div>
-    <div class="body2" v-show="selectClass != null">
+    <div class="body2" v-show="selectedClassId != null">
       <div class="classInc">
         <el-table :data="classInfo" border size="mini">
           <el-table-column prop="teacherName" label="教师姓名">
@@ -90,6 +90,23 @@
             style="margin-left: 10px"
             >添加学生<i class="el-icon-plus el-icon--right"></i
           ></el-button>
+
+          <el-upload
+            class="upload-btn"
+            action="#"
+            :show-file-list="false"
+            :before-upload="beforeUpload"
+            :http-request="handleUpload"
+            accept=".xlsx,.xls"
+          >
+            <el-button type="warning" size="small" style="margin-left: 10px">
+              批量导入<i class="el-icon-upload el-icon--right"></i>
+            </el-button>
+          </el-upload>
+
+          <el-button type="info" size="small" style="margin-left: 10px" @click="downloadTemplate">
+            下载模板<i class="el-icon-download el-icon--right"></i>
+          </el-button>
         </div>
         <div class="btn-on-bottom">
           <el-input
@@ -107,7 +124,7 @@
             style="width: 150px; margin-left: 10px"
             size="small"
             @change="getStudentInfoList"
-            v-model="studentIdNumber"
+            v-model="userId"
           >
           </el-input>
         </div>
@@ -126,20 +143,6 @@
           </el-table-column>
           <el-table-column prop="userId" label="学号" width="120">
           </el-table-column>
-<!--          <el-table-column label="性别" width="90">-->
-<!--            <template slot-scope="{ row, $index }">-->
-<!--              <span v-if="row.studentSex == 0">男</span>-->
-<!--              <span v-else>女</span>-->
-<!--            </template>-->
-<!--          </el-table-column>-->
-<!--          <el-table-column prop="studentAge" label="年龄" width="90">-->
-<!--          </el-table-column>-->
-<!--          <el-table-column label="是否近视" width="120">-->
-<!--            <template slot-scope="{ row, $index }">-->
-<!--              <el-tag type="warning" v-if="row.shortSighted == 1">近视</el-tag>-->
-<!--              <el-tag type="success" v-else>未近视</el-tag>-->
-<!--            </template>-->
-<!--          </el-table-column>-->
           <el-table-column prop="schoolName" label="学校" width="120">
           </el-table-column>
           <el-table-column prop="className" label="班级" width="120">
@@ -188,6 +191,7 @@
 <script>
 import { mapState } from "vuex";
 import crypto from "@/utils/crypto";
+import { reqStudentExcelImport } from '@/api/activity/student'
 export default {
   name: "Student",
   computed: {
@@ -202,58 +206,96 @@ export default {
     ...mapState("school", ["schoolInfoList"]),
     ...mapState("myClass", ["classInfoList", "classInfo"]),
     ...mapState("student", ["studentInfoList"]),
+    // 学校数组
     schoolArray() {
       return this.schoolInfoList.map((school) => ({
-        value: school.schoolId,
+        value: school.schoolId.toString(),
         label: school.schoolName,
       }));
     },
+    // 班级数组
     classArray() {
-      return this.selectSchool == null
+      return this.selectedSchoolId == null
         ? []
         : this.classInfoList.map((myClass) => ({
-            value: myClass.classId,
-            label: myClass.className,
-          }));
+          value: myClass.classId.toString(),
+          label: myClass.className,
+        }));
     },
+    // 当前选中的学校名称
+    selectedSchoolName() {
+      const school = this.schoolInfoList.find(s => s.schoolId === this.selectedSchoolId);
+      return school ? school.schoolName : '';
+    },
+    // 当前选中的班级名称
+    selectedClassName() {
+      const classInfo = this.classInfoList.find(c => c.classId === this.selectedClassId);
+      return classInfo ? classInfo.className : '';
+    }
   },
   data() {
     return {
-      selectClass: null,
-      selectSchool: null,
+      selectedSchoolId: null,  // 改名以更清晰地表示这是ID
+      selectedClassId: null,   // 改名以更清晰地表示这是ID
       studentInfo: [],
-      studentIdNumber: "",
+      userId: "",
       studentName: "",
       deviceInfoList: [],
       selectItems: [],
+      uploadLoading: false,
     };
   },
-  mounted() {
-    this.$store.dispatch("school/getSchoolInfoList");
+  async mounted() {
+    // 先获取学校列表
+    await this.$store.dispatch("school/getSchoolInfoList");
+
     if (this.isDisabled1 == true && this.isDisabled2 != true) {
       //校管理员
-      this.selectSchool = this.$store.getters.schoolId;
+      this.selectedSchoolId = this.$store.getters.schoolId.toString();  // 转为字符串
+      // 获取该学校的班级列表
+      await this.$store.dispatch("myClass/getClassInfoList", this.selectedSchoolId);
+
       if (localStorage.getItem("classId") != null) {
-        this.selectClass = parseInt(
-          crypto.Decrypt(localStorage.getItem("classId"))
-        );
+        // 确保转换为字符串类型
+        this.selectedClassId = crypto.Decrypt(localStorage.getItem("classId")).toString();
+        // 获取班级详细信息
+        await this.getClassInfoById(this.selectedClassId);
       }
     } else if (this.isDisabled2 == true) {
       //教师
-      this.selectSchool = this.$store.getters.schoolId;
-      this.selectClass = this.$store.getters.classId;
+      this.selectedSchoolId = this.$store.getters.schoolId.toString();  // 转为字符串
+      // 获取该学校的班级列表
+      await this.$store.dispatch("myClass/getClassInfoList", this.selectedSchoolId);
+
+      this.selectedClassId = this.$store.getters.classId.toString();  // 转为字符串
+      // 获取班级详细信息
+      if (this.selectedClassId) {
+        await this.getClassInfoById(this.selectedClassId);
+      }
     } else {
       //总管理员
       if (localStorage.getItem("schoolId") != null) {
-        this.selectSchool = parseInt(
-          crypto.Decrypt(localStorage.getItem("schoolId"))
-        );
+        this.selectedSchoolId = crypto.Decrypt(localStorage.getItem("schoolId")).toString();  // 转为字符串
+        // 获取该学校的班级列表
+        await this.$store.dispatch("myClass/getClassInfoList", this.selectedSchoolId);
       }
+
       if (localStorage.getItem("classId") != null) {
-        this.selectClass = parseInt(
-          crypto.Decrypt(localStorage.getItem("classId"))
-        );
+        this.selectedClassId = crypto.Decrypt(localStorage.getItem("classId")).toString();  // 转为字符串
+        // 获取班级详细信息
+        await this.getClassInfoById(this.selectedClassId);
       }
+    }
+
+    // 如果已选择班级，获取学生列表和设备信息
+    if (this.selectedClassId) {
+      this.getStudentInfoList();
+      await this.getDeviceInfoListByClassId(this.selectedClassId).catch(() => {
+        this.$message({
+          type: "error",
+          message: "获取班级设备信息列表失败",
+        });
+      });
     }
   },
   methods: {
@@ -266,28 +308,15 @@ export default {
         return "ok";
       } else return Promise.reject(new Error(result.msg));
     },
-    getStudentInfoList() {
-      let studentTotalInfo = {
-        classId: this.selectClass,
-        name: this.studentName,
-        userId: this.studentIdNumber,
-      };
-      this.$store
-        .dispatch("student/getStudentInfoList", studentTotalInfo)
-        .catch((err) => {
-          this.$message({
-            type: "error",
-            message: err,
-          });
-        });
-    },
-    getClassInfoById(classId) {
-      this.$store.dispatch("myClass/getClassInfoById", classId).catch((err) => {
+    async getClassInfoById(classId) {
+      try {
+        await this.$store.dispatch("myClass/getClassInfoById", classId);
+      } catch (err) {
         this.$message({
           type: "error",
           message: err,
         });
-      });
+      }
     },
     addStudent() {
       this.$router.push({
@@ -297,20 +326,20 @@ export default {
     editStudent(row) {
       this.$router.push({
         name: "StudentAdd",
-        params: { studentId: row.studentId },
+        params: { accountId: row.accountId },
       });
     },
     deleteStudent(row) {
       this.$store
-        .dispatch("student/deleteStudent", row.studentId)
+        .dispatch("student/deleteStudent", row.accountId)
         .then(() => {
           this.$message({
             type: "success",
             message: "删除成功",
           });
           this.getStudentInfoList();
-          this.getClassInfoById(this.selectClass);
-          this.getDeviceInfoListByClassId(this.selectClass);
+          this.getClassInfoById(this.selectedClassId);
+          this.getDeviceInfoListByClassId(this.selectedClassId);
         })
         .catch((err) => {
           this.$message({
@@ -339,7 +368,7 @@ export default {
         });
       } else {
         let ids = [];
-        ids = this.selectItems.map((item) => item.studentId);
+        ids = this.selectItems.map((item) => item.accountId);
         let newIds = ids.join(",");
         this.$store
           .dispatch("student/deleteStudent", newIds)
@@ -349,8 +378,8 @@ export default {
               message: "删除成功",
             });
             this.getStudentInfoList();
-            this.getClassInfoById(this.selectClass);
-            this.getDeviceInfoListByClassId(this.selectClass);
+            this.getClassInfoById(this.selectedClassId);
+            this.getDeviceInfoListByClassId(this.selectedClassId);
           })
           .catch((err) => {
             this.$message({
@@ -360,16 +389,84 @@ export default {
           });
       }
     },
-    removeClassLS() {
-      this.selectClass = null;
-      localStorage.removeItem("classId");
-    },
     toResult(){
       this.$router.push("/result");
-    }
+    },
+
+    getStudentInfoList() {
+      let studentTotalInfo = {
+        classId: this.selectedClassId,
+        name: this.studentName,
+        userId: this.userId,
+      };
+      this.$store
+        .dispatch("student/getStudentInfoList", studentTotalInfo)
+        .catch((err) => {
+          this.$message({
+            type: "error",
+            message: err,
+          });
+        });
+    },
+    // 处理文件上传时使用selectedClassId
+    async handleUpload({ file }) {
+      try {
+        this.uploadLoading = true;
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('classId', this.selectedClassId.toString());
+
+        const result = await reqStudentExcelImport(formData);
+
+        if (result.code == 200) {
+          this.$message.success('导入成功');
+          this.getStudentInfoList();
+          this.getClassInfoById(this.selectedClassId);
+        } else {
+          this.$message.error('导入失败');
+        }
+      } catch (error) {
+        this.$message.error('导入失败');
+      } finally {
+        this.uploadLoading = false;
+      }
+    },
+    removeClassLS() {
+      this.selectedClassId = null;
+      localStorage.removeItem("classId");
+    },
+    // 上传前的校验
+    beforeUpload(file) {
+      const isExcel = file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+        file.type === 'application/vnd.ms-excel';
+      const isLt2M = file.size / 1024 / 1024 < 2;
+
+      if (!isExcel) {
+        this.$message.error('只能上传Excel文件!');
+        return false;
+      }
+      if (!isLt2M) {
+        this.$message.error('文件大小不能超过 2MB!');
+        return false;
+      }
+
+      if (!this.selectedClassId) {
+        this.$message.error('请先选择班级!');
+        return false;
+      }
+
+      return true;
+    },
+
+
+    // 下载模板
+    downloadTemplate() {
+      // 这里替换成实际的模板下载地址
+      window.open('https://bilibilipropost.oss-cn-beijing.aliyuncs.com/student.xlsx', '_blank');
+    },
   },
   watch: {
-    selectSchool: {
+    selectedSchoolId: {
       deep: true,
       handler(newValue) {
         if (newValue != null) {
@@ -385,14 +482,14 @@ export default {
         }
       },
     },
-    selectClass: {
+    selectedClassId: {
       deep: true,
       handler(newValue) {
         if (newValue != null) {
           this.getClassInfoById(newValue);
           localStorage.setItem("classId", crypto.Encrypt(newValue));
           this.getStudentInfoList();
-          this.getDeviceInfoListByClassId(this.selectClass).catch(() => {
+          this.getDeviceInfoListByClassId(this.selectedClassId).catch(() => {
             this.$message({
               type: "error",
               message: "获取班级设备信息列表失败",
@@ -472,5 +569,24 @@ export default {
 
 .studentInf {
   margin-top: 30px;
+}
+
+.upload-btn {
+  display: inline-block;
+}
+
+.upload-btn .el-upload {
+  display: inline-block;
+}
+
+/* 为了保持按钮组的对齐 */
+.btn-on-top {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.btn-on-top .el-button {
+  margin-bottom: 0;
 }
 </style>

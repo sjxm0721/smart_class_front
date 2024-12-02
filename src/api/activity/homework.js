@@ -33,3 +33,11 @@ export const reqGetHomeWorkList=(subjectId,studentId)=>{
     params:{subjectId,studentId},
   })
 }
+
+export const reqDelHomework=(homeworkId)=>{
+  return request({
+    url:'/homework/delete',
+    method:'delete',
+    params:{homeworkId}
+  })
+}

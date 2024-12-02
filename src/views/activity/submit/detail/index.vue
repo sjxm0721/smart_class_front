@@ -98,6 +98,10 @@
 
       <!-- 教师视角：可以评分和评价 -->
       <template v-if="auth === 2">
+        <div class="previous-comment" v-if="submitInfo.score">
+          <div class="history-title">历史评分：</div>
+          <div class="history-content">{{ submitInfo.score }}</div>
+        </div>
         <div class="previous-comment" v-if="submitInfo.comment">
           <div class="history-title">历史评价：</div>
           <div class="history-content">{{ submitInfo.comment }}</div>
@@ -171,7 +175,7 @@
 <script>
 import E from 'wangeditor'
 import ResourcePreview from '@/views/activity/resource/detail' // 引入资源预览组件
-import { reqGetSubmitInfo } from '@/api/activity/submit'
+import { reqGetSubmitInfo, reqGiveComment } from '@/api/activity/submit'
 import { mapState } from 'vuex'
 import { reqDownloadResourcesByName } from '@/api/activity/resource'
 
@@ -344,7 +348,7 @@ export default {
           score: this.commentForm.score,
           comment: this.commentForm.comment
         }
-        // const res = await saveComment(params)
+        const res = await reqGiveComment(params)
         this.$message.success('评价保存成功')
         this.fetchSubmitDetail() // 重新加载数据
       } catch (error) {

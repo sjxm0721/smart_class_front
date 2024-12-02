@@ -155,8 +155,8 @@ export default {
     },
   },
   created() {
-    if (this.$route.params.studentId) {
-      this.getStudentInfo(this.$route.params.studentId).catch(() => {
+    if (this.$route.params.accountId) {
+      this.getStudentInfo(this.$route.params.accountId).catch(() => {
         this.$message({
           message: "获取学生信息失败",
           type: "error",

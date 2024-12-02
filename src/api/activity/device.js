@@ -55,3 +55,12 @@ export const reqGetDeviceNumber=(schoolId,classId)=>{
         params:{schoolId,classId}
     })
 }
+
+
+export const reqDeviceExcelImport=(formData) => {
+  return request({
+    url:'/device/import',
+    method:'post',
+    data:formData
+  })
+}
