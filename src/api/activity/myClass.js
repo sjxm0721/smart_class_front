@@ -63,3 +63,14 @@ export const reqGetAllClassList=(accountId)=>{
     params:{accountId}
   })
 }
+
+
+
+// 在 api/activity/myClass.js 中
+export const reqBindTeachers = (data) => {
+  return request({
+    url: 'myclass/bind-teachers',
+    method: 'post',
+    data
+  })
+}

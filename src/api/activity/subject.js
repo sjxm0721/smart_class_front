@@ -23,3 +23,13 @@ export const reqAddOrUpdateSubject=(subjectInfo) => {
     data:subjectInfo
   })
 }
+
+
+export const reqExportGrades = (subjectId) => {
+  return request({
+    url: '/subject/export',
+    method: 'get',
+    params: { subjectId },
+    responseType: 'blob' // 用于文件下载
+  })
+}

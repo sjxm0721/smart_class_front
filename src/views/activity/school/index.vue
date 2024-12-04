@@ -27,20 +27,11 @@
             <img :src="row.pic" alt="没有图片" />
           </template>
         </el-table-column>
-        <el-table-column label="负责人" width="150">
-          <template slot-scope="{ row, $index }">
-            <el-popover trigger="hover" placement="top" v-if="row.masterId">
-              <p>姓名: {{ row.masterName }}</p>
-              <p>电话: {{ row.phone }}</p>
-              <div slot="reference" class="name-wrapper">
-                <el-tag size="medium">{{ row.masterName }}</el-tag>
-              </div>
-            </el-popover>
-          </template>
-        </el-table-column>
         <el-table-column prop="classNum" label="班级数" width="120">
         </el-table-column>
-        <el-table-column prop="deviceNum" label="设备数" width="120">
+        <el-table-column prop="teacherNum" label="教师数" width="120">
+        </el-table-column>
+        <el-table-column prop="studentNum" label="学生数" width="120">
         </el-table-column>
         <el-table-column prop="address" label="地址" width="300">
         </el-table-column>

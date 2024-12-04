@@ -37,77 +37,9 @@
           </el-option>
         </el-select>
       </div>
-      <div class="body1-right">
-        <el-button type="info" plain @click="toResult">查看检测结果</el-button>
-      </div>
     </div>
     <div class="body2" v-show="selectedClassId != null">
-      <div class="classInc">
-        <el-table :data="classInfo" border size="mini">
-          <el-table-column prop="teacherName" label="教师姓名">
-          </el-table-column>
-          <el-table-column prop="phone" label="联系电话"> </el-table-column>
-          <el-table-column prop="studentNum" label="学生人数" width="90">
-          </el-table-column>
-          <el-table-column prop="deviceNum" label="设备个数" width="90">
-          </el-table-column>
-        </el-table>
-      </div>
       <div class="addStudentBtn">
-        <div class="btn-on-top">
-          <el-popover placement="left" width="500" trigger="click">
-            <el-table :data="deviceInfoList">
-              <el-table-column
-                width="150"
-                property="deviceName"
-                label="设备名"
-              ></el-table-column>
-              <el-table-column
-                width="90"
-                property="testNum"
-                label="测试次数"
-              ></el-table-column>
-              <el-table-column label="设备状态">
-                <template slot-scope="{ row, $index }">
-                  <el-tag type="success" v-if="row.isFault == 0">正常</el-tag>
-                  <el-tag type="danger" v-else>故障</el-tag>
-                </template>
-              </el-table-column>
-              <el-table-column
-                width="150"
-                property="lastRepairTime"
-                label="上次维修时间"
-              ></el-table-column>
-            </el-table>
-            <el-button type="success" size="small" slot="reference"
-              >查看设备<i class="el-icon-camera el-icon--right"></i
-            ></el-button>
-          </el-popover>
-          <el-button
-            type="primary"
-            @click="addStudent"
-            size="small"
-            style="margin-left: 10px"
-            >添加学生<i class="el-icon-plus el-icon--right"></i
-          ></el-button>
-
-          <el-upload
-            class="upload-btn"
-            action="#"
-            :show-file-list="false"
-            :before-upload="beforeUpload"
-            :http-request="handleUpload"
-            accept=".xlsx,.xls"
-          >
-            <el-button type="warning" size="small" style="margin-left: 10px">
-              批量导入<i class="el-icon-upload el-icon--right"></i>
-            </el-button>
-          </el-upload>
-
-          <el-button type="info" size="small" style="margin-left: 10px" @click="downloadTemplate">
-            下载模板<i class="el-icon-download el-icon--right"></i>
-          </el-button>
-        </div>
         <div class="btn-on-bottom">
           <el-input
             placeholder="请输入姓名"
@@ -127,6 +59,44 @@
             v-model="userId"
           >
           </el-input>
+        </div>
+        <div class="btn-on-top">
+          <el-popover placement="left" width="150" trigger="click">
+            <el-table :data="deviceInfoList">
+              <el-table-column
+                width="150"
+                property="deviceName"
+                label="设备名"
+              ></el-table-column>
+            </el-table>
+            <el-button type="success" size="small" slot="reference"
+            >查看设备<i class="el-icon-camera el-icon--right"></i
+            ></el-button>
+          </el-popover>
+          <el-button
+            type="primary"
+            @click="addStudent"
+            size="small"
+            style="margin-left: 10px"
+          >添加学生<i class="el-icon-plus el-icon--right"></i
+          ></el-button>
+
+          <el-upload
+            class="upload-btn"
+            action="#"
+            :show-file-list="false"
+            :before-upload="beforeUpload"
+            :http-request="handleUpload"
+            accept=".xlsx,.xls"
+          >
+            <el-button type="warning" size="small" style="margin-left: 10px">
+              批量导入<i class="el-icon-upload el-icon--right"></i>
+            </el-button>
+          </el-upload>
+
+          <el-button type="info" size="small" style="margin-left: 10px" @click="downloadTemplate">
+            下载模板<i class="el-icon-download el-icon--right"></i>
+          </el-button>
         </div>
       </div>
       <div class="studentInf">
@@ -192,6 +162,7 @@
 import { mapState } from "vuex";
 import crypto from "@/utils/crypto";
 import { reqStudentExcelImport } from '@/api/activity/student'
+import { reqGetAllClassList } from '@/api/activity/myClass'
 export default {
   name: "Student",
   computed: {
@@ -203,8 +174,8 @@ export default {
       const userAuth = crypto.Decrypt(localStorage.getItem("user_auth"));
       return userAuth !== "1" && userAuth !== "2";
     },
+    ...mapState("user",["schoolId","accountId"]),
     ...mapState("school", ["schoolInfoList"]),
-    ...mapState("myClass", ["classInfoList", "classInfo"]),
     ...mapState("student", ["studentInfoList"]),
     // 学校数组
     schoolArray() {
@@ -237,6 +208,7 @@ export default {
     return {
       selectedSchoolId: null,  // 改名以更清晰地表示这是ID
       selectedClassId: null,   // 改名以更清晰地表示这是ID
+      classInfoList: [],
       studentInfo: [],
       userId: "",
       studentName: "",
@@ -253,7 +225,11 @@ export default {
       //校管理员
       this.selectedSchoolId = this.$store.getters.schoolId.toString();  // 转为字符串
       // 获取该学校的班级列表
-      await this.$store.dispatch("myClass/getClassInfoList", this.selectedSchoolId);
+      reqGetAllClassList(this.accountId).then((res)=>{
+        if(res.code==200){
+          this.classInfoList = res.data
+        }
+      });
 
       if (localStorage.getItem("classId") != null) {
         // 确保转换为字符串类型
@@ -552,8 +528,8 @@ export default {
 
 .addStudentBtn {
   display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
+  //flex-direction: column;
+  justify-content: space-between;
 }
 
 .btn-on-top {
@@ -562,9 +538,6 @@ export default {
 }
 
 .btn-on-bottom {
-  margin-top: 10px;
-  display: flex;
-  justify-content: flex-end;
 }
 
 .studentInf {
@@ -589,4 +562,5 @@ export default {
 .btn-on-top .el-button {
   margin-bottom: 0;
 }
+
 </style>

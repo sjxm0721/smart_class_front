@@ -1,10 +1,10 @@
 import request from '@/utils/request'
 
-export const reqGetDevicePageInfo=(schoolId,inUse,input,currentPage,pageSize)=>{
+export const reqGetDevicePageInfo=(schoolId,inUse,input,currentPage,pageSize,type)=>{
     return request({
         url:'device/page',
         method:'get',
-        params:{schoolId,inUse,input,currentPage,pageSize}
+        params:{schoolId,inUse,input,currentPage,pageSize,type}
     })
 }
 

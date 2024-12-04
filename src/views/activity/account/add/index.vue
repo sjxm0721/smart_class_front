@@ -72,7 +72,7 @@
           </el-select>
         </el-form-item>
         <el-form-item label="所属班级" prop="classId">
-          <el-select v-model="accountInfo.classId" placeholder="请选择所属班级" :disabled="accountInfo.schoolId===null||accountInfo.auth!=3">
+          <el-select v-model="accountInfo.classId" placeholder="请选择所属班级" :disabled="accountInfo.schoolId===null||accountInfo.auth==0">
             <el-option
               v-for="item in classArray"
               :key="item.value"
@@ -161,11 +161,11 @@ export default {
       },
       auths: [
         {
-          value: 2,
-          label: "校管理员",
+          value: 0,
+          label: "学生",
         },
         {
-          value: 3,
+          value: 2,
           label: "教师",
         },
       ],

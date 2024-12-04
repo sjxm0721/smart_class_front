@@ -1,6 +1,20 @@
+# Template 部分
 <template>
   <div class="subject-intro">
     <el-card class="intro-card">
+      <!-- 顶部操作区域 -->
+      <div class="operation-area">
+        <el-button
+          type="primary"
+          size="medium"
+          icon="el-icon-download"
+          :loading="exporting"
+          @click="exportGrades"
+        >
+          {{ exporting ? '导出中...' : '导出学生成绩' }}
+        </el-button>
+      </div>
+
       <!-- 课程头部信息区域 -->
       <div class="course-header">
         <div class="course-cover">
@@ -41,8 +55,9 @@
   </div>
 </template>
 
+# Script 部分
 <script>
-import { reqGetSubjectInfo } from '@/api/activity/subject'
+import { reqGetSubjectInfo,reqExportGrades} from '@/api/activity/subject'
 
 export default {
   name: 'SubjectIntro',
@@ -52,7 +67,8 @@ export default {
       hasOutline: false,
       hasResources: false,
       hasHomework: false,
-      subject: null
+      subject: null,
+      exporting: false
     }
   },
   mounted() {
@@ -70,6 +86,38 @@ export default {
         this.$message.error('获取课程信息失败')
       }
     },
+    async exportGrades() {
+      if (!this.subject?.id) {
+        this.$message.warning('课程信息未加载完成')
+        return
+      }
+
+      try {
+        this.exporting = true
+        const res = await reqExportGrades(this.subject.id)
+
+        if (res.code === 200) {
+          // 创建一个下载链接
+          const url = window.URL.createObjectURL(new Blob([res.data]))
+          const link = document.createElement('a')
+          link.href = url
+          link.setAttribute('download', `${this.subject.title}-学生成绩.xlsx`)
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          window.URL.revokeObjectURL(url)
+
+          this.$message.success('成绩导出成功')
+        } else {
+          this.$message.error(res.msg || '导出失败')
+        }
+      } catch (error) {
+        console.error('导出失败:', error)
+        this.$message.error('导出失败，请稍后重试')
+      } finally {
+        this.exporting = false
+      }
+    },
     handleSelect(key) {
       this.activeMenu = key
     },
@@ -82,6 +130,7 @@ export default {
 }
 </script>
 
+# Style 部分
 <style scoped>
 .subject-intro {
   padding: 20px;
@@ -93,6 +142,14 @@ export default {
   max-width: 1200px;
   margin: 0 auto;
   border-radius: 8px;
+}
+
+/* 新增操作区域样式 */
+.operation-area {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 20px;
+  padding: 0 10px;
 }
 
 .course-header {
@@ -193,6 +250,10 @@ export default {
   .tag-item {
     width: 100%;
     justify-content: center;
+  }
+
+  .operation-area {
+    margin-bottom: 15px;
   }
 }
 </style>

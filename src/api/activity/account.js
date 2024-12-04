@@ -55,3 +55,24 @@ export const reqGetTeacherNumber=(schoolId,classId)=>{
         params:{schoolId,classId},
     })
 }
+
+// 教师账号批量导入
+export const reqTeacherExcelImport = (data) => {
+  return request({
+    url: '/user/import',// 根据实际接口地址修改
+    method: 'post',
+    data,
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
+}
+
+export const reqGetTeacherList = (classId) => {
+  return request({
+    url: '/user/unbind-teacher',
+    method: 'get',
+    params:{classId}
+  })
+}
+

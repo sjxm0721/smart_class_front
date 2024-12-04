@@ -27,8 +27,8 @@ const mutations={
 
 const actions={
     async getDevicePageInfo({commit},pageInfo){
-        const {schoolId,inUse,input,currentPage,pageSize}=pageInfo;
-        let result = await reqGetDevicePageInfo(schoolId,inUse,input,currentPage,pageSize);
+        const {schoolId,inUse,input,currentPage,pageSize,type}=pageInfo;
+        let result = await reqGetDevicePageInfo(schoolId,inUse,input,currentPage,pageSize,type);
         if(result.code==200){
             commit('SET_DEVICE_PAGE_INFO',result.data['records']);
             commit('SET_TOTAL',result.data['total']);
@@ -85,4 +85,4 @@ export default{
     mutations,
     actions,
     namespaced: true
-} 
+}

@@ -174,13 +174,27 @@ export const constantRoutes = [
   {
     path:"/device",
     component: Layout,
-    meta:{auth:['1','2']},
+    meta:{auth:['2']},
     children:[
       {
         path:"",
         name:"Device",
         component:()=>import("@/views/activity/device"),
         meta:{title:'设备管理',icon:'device'}
+      }
+    ]
+  },
+
+  {
+    path:"/device-borrow",
+    component: Layout,
+    meta:{auth:['0']},
+    children:[
+      {
+        path:"",
+        name:"DeviceBorrow",
+        component:()=>import("@/views/activity/deviceBorrow"),
+        meta:{title:'设备租借',icon:'device'}
       }
     ]
   },
@@ -249,6 +263,22 @@ export const constantRoutes = [
         name:"SubmitDetail",
         component:()=>import("@/views/activity/submit/detail"),
         meta:{title:"作业提交详情"},
+        hidden: true,
+      }
+    ]
+  },
+
+  {
+    path:"/resource",
+    component: Layout,
+    hidden:true,
+    meta:{auth:['0','1','2']},
+    children:[
+     {
+        path:"detail/:detailId?",
+        name:"ResourceDetail",
+        component:()=>import("@/views/activity/resource/detail"),
+        meta:{title:"资源详情"},
         hidden: true,
       }
     ]

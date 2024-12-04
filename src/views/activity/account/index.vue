@@ -34,12 +34,12 @@
         >
       </div>
       <div class="header-right">
-        <el-button type="primary" @click="addAccount(null)"
-          >单个添加<i class="el-icon-plus el-icon--right"></i
-        ></el-button>
-        <el-button type="success" @click="addAccount(null)"
-        >批量导入<i class="el-icon-plus el-icon--right"></i
-        ></el-button>
+        <div class="button-group">
+          <el-button type="primary" @click="addAccount(null)">
+            单个添加<i class="el-icon-plus el-icon--right"></i>
+          </el-button>
+          <teacher-bulk-import @import-success="getAccountPageInfo" />
+        </div>
       </div>
     </div>
     <div class="body-all">
@@ -68,8 +68,6 @@
         <el-table-column prop="phone" label="手机号" width="150">
         </el-table-column>
         <el-table-column prop="email" label="邮箱" width="200">
-        </el-table-column>
-        <el-table-column prop="updateTime" label="最近修改时间" width="150">
         </el-table-column>
         <el-table-column fixed="right" label="操作" width="210">
           <template slot-scope="{ row, $index }">
@@ -115,11 +113,14 @@
 </template>
 
 <script>
+import TeacherBulkImport from './add/TeacherBulkImport.vue';
 import { mapState } from "vuex";
 import crypto from "@/utils/crypto";
 export default {
   name: "Account",
+  components: { TeacherBulkImport },
   computed: {
+    TeacherBulkImport,
     isDisabled() {
       const userAuth = crypto.Decrypt(localStorage.getItem("user_auth"));
       return userAuth !== "1";
@@ -135,19 +136,19 @@ export default {
           label: "",
         },
         {
+          value: 0,
+          label: "学生",
+        },
+        {
           value: 1,
-          label: "总管理员",
+          label: "管理员",
         },
         {
           value: 2,
-          label: "校管理员",
-        },
-        {
-          value: 3,
           label: "教师",
         },
       ],
-      select: this.isDisabled == true ? { value: 3, label: "教师" } : null,
+      select: this.isDisabled == true ? { value: 2, label: "教师" } : null,
       currentPage: 1, //当前页数
       pageSize: 5, //每页展示数据数
       input: "", //搜索条件
@@ -155,7 +156,7 @@ export default {
   },
   mounted() {
     if (this.isDisabled == true) {
-      this.select = 3;
+      this.select = 2;
     }
     this.getAccountPageInfo();
   },
@@ -279,9 +280,7 @@ img {
   white-space: nowrap;
 }
 
-.header-right {
-  float: right;
-}
+
 
 .body-all {
   margin: 10px;
@@ -291,5 +290,21 @@ img {
 .bottom-all {
   display: flex;
   justify-content: center;
+}
+
+.header-right {
+  float: right;
+}
+
+.button-group {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* 按钮之间的间距 */
+}
+
+/* 确保按钮在同一行且垂直居中 */
+.button-group :deep(.import-button) {
+  display: inline-flex;
+  align-items: center;
 }
 </style>

@@ -19,9 +19,6 @@
               <span style="float: left">{{ item.label }}</span>
             </el-option>
           </el-select>
-          <span style="margin-left: 20px">校管理员：</span>
-          <el-input v-model="masterName" :disabled="true" style="width: 150px">
-          </el-input>
         </div>
         <div class="header-right">
           <el-button type="primary" @click="addOrEditClass(null)"
@@ -32,21 +29,24 @@
       <div class="body-all">
         <el-table :data="classPageInfo">
           <el-table-column label="班级名" prop="className"> </el-table-column>
-          <el-table-column label="教师" width="150">
-            <template slot-scope="{ row, $index }">
-              <el-popover trigger="hover" placement="top" v-if="row.teacherId">
-                <p>姓名: {{ row.teacherName }}</p>
-                <p>电话: {{ row.phone }}</p>
-                <div slot="reference" class="name-wrapper">
-                  <el-tag size="medium">{{ row.teacherName }}</el-tag>
+          <el-table-column label="学生数" prop="studentNum"> </el-table-column>
+          <el-table-column label="教师数" prop="teacherNum"> </el-table-column>
+          <el-table-column label="已关联教师">
+            <template slot-scope="{ row }">
+              <el-tooltip
+                v-if="row.teacherList && row.teacherList.length"
+                :content="getTeacherNames(row.teacherList)"
+                placement="top"
+                effect="light"
+              >
+                <div class="teacher-names">
+                  {{ getTeacherNames(row.teacherList) }}
                 </div>
-              </el-popover>
+              </el-tooltip>
+              <span v-else>-</span>
             </template>
           </el-table-column>
-          <el-table-column label="学生数" prop="studentNum"> </el-table-column>
-          <el-table-column label="设备数" prop="deviceNum"> </el-table-column>
-          <el-table-column label="上次修改时间" prop="updateTime">
-          </el-table-column>
+
           <el-table-column width="250">
             <template slot="header" slot-scope="scope">
               <el-input
@@ -60,19 +60,7 @@
               <el-button type="warning" size="mini" @click="addOrEditClass(row)"
                 >编辑</el-button
               >
-              <el-popconfirm
-              confirm-button-text="确定"
-              cancel-button-text="取消"
-              icon="el-icon-info"
-              icon-color="red"
-              title="确定解绑吗？"
-              v-show="row.teacherId!=null"
-              @onConfirm="clearTeacher(row)"
-            >
-            <el-button type="info" size="mini" slot="reference" style="margin-left: 10px;"
-                >解绑教师</el-button
-              >
-            </el-popconfirm>
+              <el-button type="primary" size="mini" @click="showBindTeacherDialog(row)">关联教师</el-button>
               <el-popconfirm
               confirm-button-text="确定"
               cancel-button-text="取消"
@@ -139,6 +127,40 @@
             <el-button type="primary" @click="confirmClick">确 定</el-button>
           </div>
         </el-dialog>
+
+        <el-dialog
+          title="关联教师"
+          :visible.sync="bindTeacherDialogVisible"
+          width="700px"
+          :close-on-click-modal="false"
+          @closed="handleBindDialogClose"
+        >
+          <div class="bind-teacher-container">
+            <el-transfer
+              v-model="selectedTeachers"
+              :data="availableTeachers"
+              :titles="['待选教师', '已选教师']"
+              :props="{
+          key: 'accountId',
+          label: 'name'
+        }"
+              :filter-method="filterMethod"
+              filter-placeholder="请输入教师姓名"
+              filterable
+            >
+              <template slot-scope="{ option }">
+                <div class="transfer-item">
+                  <span>{{ option.name }}</span>
+                  <small style="color: #909399">({{ option.userId }})</small>
+                </div>
+              </template>
+            </el-transfer>
+          </div>
+          <div slot="footer" class="dialog-footer">
+            <el-button @click="bindTeacherDialogVisible = false">取 消</el-button>
+            <el-button type="primary" @click="confirmBindTeachers" :loading="binding">确 定</el-button>
+          </div>
+        </el-dialog>
       </div>
     </div>
   </div>
@@ -147,6 +169,9 @@
 <script>
 import { mapState } from "vuex";
 import crypto from "@/utils/crypto";
+import { reqBindTeachers } from '@/api/activity/myClass'
+import {reqGetTeacherList} from '@/api/activity/account'
+
 export default {
   name: "MyClass",
   computed: {
@@ -178,6 +203,11 @@ export default {
       selectSchool: null,
       masterName: "",
       dialogFormVisible: false, //控制dialog的显示与隐藏
+      bindTeacherDialogVisible: false, // 控制绑定教师弹窗的显示
+      currentClassInfo: null, // 当前操作的班级信息
+      availableTeachers: [], // 可选的教师列表
+      selectedTeachers: [], // 已选的教师列表
+      binding: false, // 绑定提交状态
       classInfo: {
         classId: null,
         schoolId: null,
@@ -186,6 +216,76 @@ export default {
     };
   },
   methods: {
+    // 显示绑定教师弹窗
+    async showBindTeacherDialog(row) {
+      this.currentClassInfo = row;
+      this.bindTeacherDialogVisible = true;
+
+      try {
+        // 获取可用教师列表
+        const response = await reqGetTeacherList(
+          row.classId
+        );
+
+        if (response.code === 200) {
+          this.availableTeachers = response.data;
+          // 如果已有关联教师，设置为已选
+          if (row.teacherList && row.teacherList.length) {
+            this.selectedTeachers = row.teacherList.map(teacher => teacher.accountId);
+          }
+        } else {
+          this.$message.error(response.msg || '获取教师列表失败');
+        }
+      } catch (error) {
+        console.error('获取教师列表失败:', error);
+        this.$message.error('获取教师列表失败');
+      }
+    },
+
+    // 关闭弹窗时清理数据
+    handleBindDialogClose() {
+      this.currentClassInfo = null;
+      this.availableTeachers = [];
+      this.selectedTeachers = [];
+      this.binding = false;
+    },
+
+    // 搜索过滤方法
+    filterMethod(query, item) {
+      return item.name.indexOf(query) > -1 || item.accountId.indexOf(query) > -1;
+    },
+
+    // 确认绑定教师
+    async confirmBindTeachers() {
+      if (!this.currentClassInfo) return;
+
+      this.binding = true;
+      try {
+        const bindInfo = {
+          classId: this.currentClassInfo.classId,
+          teacherIds: this.selectedTeachers
+        };
+
+        const result = await reqBindTeachers(bindInfo);
+
+        if (result.code === 200) {
+          this.$message.success('关联教师成功');
+          this.bindTeacherDialogVisible = false;
+          this.getClassPageInfo(); // 刷新列表
+        } else {
+          this.$message.error(result.msg || '关联教师失败');
+        }
+      } catch (error) {
+        console.error('关联教师失败:', error);
+        this.$message.error('关联教师失败');
+      } finally {
+        this.binding = false;
+      }
+    },
+    getTeacherNames(teacherList) {
+      if (!teacherList || !teacherList.length) return '-';
+      return teacherList.map(teacher => teacher.name).join('、');
+    },
     handleSizeChange(val) {
       this.pageSize = val;
       this.getClassPageInfo();
@@ -283,35 +383,35 @@ export default {
         schoolId:row.schoolId
       }
       this.$store.dispatch("myClass/deleteClass",deleteInfo)
-      .then(()=>{
-        this.$message({
-          type:'success',
-          message:'删除班级成功'
+        .then(()=>{
+          this.$message({
+            type:'success',
+            message:'删除班级成功'
+          })
+          this.getClassPageInfo();
         })
-        this.getClassPageInfo();
-      })
-      .catch((err)=>{
-        this.$message({
-          type:'error',
-          message:err
+        .catch((err)=>{
+          this.$message({
+            type:'error',
+            message:err
+          })
         })
-      })
     },
     clearTeacher(row){
       this.$store.dispatch("myClass/clearTeacher",row.classId)
-      .then(()=>{
-        this.$message({
-          type:'success',
-          message:'解绑教师成功'
+        .then(()=>{
+          this.$message({
+            type:'success',
+            message:'解绑教师成功'
+          })
+          this.getClassPageInfo();
         })
-        this.getClassPageInfo();
-      })
-      .catch((err)=>{
-        this.$message({
-          type:'error',
-          message:err
+        .catch((err)=>{
+          this.$message({
+            type:'error',
+            message:err
+          })
         })
-      })
     },
     changeInput(){
       this.currentPage=1;
@@ -400,5 +500,35 @@ export default {
 .bottom-all {
   display: flex;
   justify-content: center;
+}
+
+/* 新增样式 */
+.teacher-names {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px; /* 可以根据需要调整最大宽度 */
+}
+
+.bind-teacher-container {
+  padding: 20px 0;
+  display: flex;
+  justify-content: center;
+}
+
+.transfer-item {
+  padding: 5px 0;
+}
+
+:deep(.el-transfer-panel) {
+  width: 300px;
+}
+
+:deep(.el-transfer-panel__body) {
+  height: 400px;
+}
+
+:deep(.el-transfer-panel__list.is-filterable) {
+  height: 341px;
 }
 </style>
