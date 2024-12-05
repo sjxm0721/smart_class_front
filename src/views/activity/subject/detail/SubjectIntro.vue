@@ -94,11 +94,9 @@ export default {
 
       try {
         this.exporting = true
-        const res = await reqExportGrades(this.subject.id)
-
-        if (res.code === 200) {
+        reqExportGrades(this.subject.id).then((res)=>{
           // 创建一个下载链接
-          const url = window.URL.createObjectURL(new Blob([res.data]))
+          const url = window.URL.createObjectURL(new Blob([res]))
           const link = document.createElement('a')
           link.href = url
           link.setAttribute('download', `${this.subject.title}-学生成绩.xlsx`)
@@ -108,9 +106,9 @@ export default {
           window.URL.revokeObjectURL(url)
 
           this.$message.success('成绩导出成功')
-        } else {
-          this.$message.error(res.msg || '导出失败')
-        }
+        }).catch((err)=>{
+          this.$message.error('导出失败')
+        })
       } catch (error) {
         console.error('导出失败:', error)
         this.$message.error('导出失败，请稍后重试')

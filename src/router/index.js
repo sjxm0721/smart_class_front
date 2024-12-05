@@ -251,7 +251,7 @@ export const constantRoutes = [
   {
     path:"/submit",
     component: Layout,
-    meta:{auth:['2']},
+    meta:{auth:['0','2']},
     children: [
       {
         path:"",
