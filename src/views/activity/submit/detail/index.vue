@@ -109,14 +109,51 @@
 
         <div class="comment-form">
           <el-form :model="commentForm" ref="commentForm" label-width="80px">
+            <!-- 教师评价区域中的评分部分修改为 -->
             <el-form-item label="评分">
-              <el-input-number
-                v-model="commentForm.score"
-                :min="0"
-                :max="100"
-                :step="1"
-                size="small">
-              </el-input-number>
+              <div class="score-input-group">
+                <el-input-number
+                  v-model="commentForm.score"
+                  :min="0"
+                  :max="100"
+                  :precision="2"
+                  :step="0.5"
+                  size="small"
+                  @change="handleScoreChange"
+                >
+                </el-input-number>
+                <div class="score-tip">
+                  <el-popover
+                    placement="right"
+                    width="200"
+                    trigger="hover"
+                    popper-class="score-tip-popover"
+                  >
+                    <div class="score-rule">
+                      <div class="rule-title">评分规则：</div>
+                      <div class="rule-item">
+                        <div class="rule-range">0-60分：</div>
+                        <el-tag size="mini" type="danger">不及格</el-tag>
+                      </div>
+                      <div class="rule-item">
+                        <div class="rule-range">60-90分：</div>
+                        <el-tag size="mini" type="success">及格</el-tag>
+                      </div>
+                      <div class="rule-item">
+                        <div class="rule-range">90-100分：</div>
+                        <el-tag size="mini" type="primary">优秀</el-tag>
+                      </div>
+                    </div>
+                    <el-button slot="reference" type="text" class="tip-trigger">
+                      <i class="el-icon-question"></i>
+                      评分说明
+                    </el-button>
+                  </el-popover>
+                  <span class="current-level" :class="scoreLevelClass">
+        {{ scoreLevel }}
+      </span>
+                </div>
+              </div>
             </el-form-item>
             <el-form-item label="评语">
               <el-input
@@ -203,6 +240,21 @@ export default {
     ...mapState('user', ['accountId', 'auth']),
     scoreRate() {
       return this.submitInfo.score ? this.submitInfo.score / 20 : 0
+    },
+    scoreLevel() {
+      const score = this.commentForm.score;
+      if (score < 60) return '不及格';
+      if (score < 90) return '及格';
+      return '优秀';
+    },
+
+    scoreLevelClass() {
+      const score = this.commentForm.score;
+      return {
+        'level-fail': score < 60,
+        'level-pass': score >= 60 && score < 90,
+        'level-excellent': score >= 90
+      };
     }
   },
   mounted() {
@@ -373,6 +425,16 @@ export default {
         minute: '2-digit',
         second: '2-digit'
       })
+    },
+    handleScoreChange(value) {
+      if (value < 0 || value > 100) {
+        this.$message({
+          message: '请输入0-100之间的分数',
+          type: 'warning'
+        });
+        // 自动修正分数范围
+        this.commentForm.score = Math.max(0, Math.min(100, value));
+      }
     }
   }
 }
@@ -524,6 +586,80 @@ export default {
 .preview-dialog {
   display: flex;
   flex-direction: column;
+}
+
+/* 在 style 部分添加 */
+.score-input-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.score-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.tip-trigger {
+  padding: 0;
+  font-size: 13px;
+}
+
+.tip-trigger i {
+  margin-right: 4px;
+  color: #909399;
+}
+
+.score-rule {
+  font-size: 13px;
+}
+
+.rule-title {
+  margin-bottom: 8px;
+  color: #606266;
+  font-weight: bold;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.rule-range {
+  width: 70px;
+  color: #909399;
+}
+
+.current-level {
+  font-size: 13px;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.level-fail {
+  color: #F56C6C;
+  background-color: #FEF0F0;
+}
+
+.level-pass {
+  color: #67C23A;
+  background-color: #F0F9EB;
+}
+
+.level-excellent {
+  color: #409EFF;
+  background-color: #ECF5FF;
+}
+
+/* 自定义 popover 样式 */
+:deep(.score-tip-popover) {
+  padding: 12px;
+}
+
+:deep(.el-popover__title) {
+  font-weight: bold;
 }
 
 .resource-preview-dialog {

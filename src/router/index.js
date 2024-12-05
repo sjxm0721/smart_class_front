@@ -233,12 +233,6 @@ export const constantRoutes = [
         component:()=>import("@/views/activity/homework"),
         meta:{title:'作业管理',icon:'student'}
       },{
-        path:"add",
-        name:"HomeWorkAdd",
-        component:()=>import("@/views/activity/homework/add"),
-        meta:{title:"布置作业"},
-        hidden:true,
-      },{
       path:"detail/:homeworkId?",
         name:"HomeWorkDetail",
         component:()=>import("@/views/activity/homework/detail"),

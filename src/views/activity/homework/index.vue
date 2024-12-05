@@ -14,16 +14,6 @@
             class="search-input"
           />
         </div>
-        <div class="action-area">
-          <el-button
-            type="primary"
-            icon="el-icon-plus"
-            size="small"
-            @click="addHomeWork"
-          >
-            布置作业
-          </el-button>
-        </div>
       </div>
 
       <!-- 表格区域 -->
@@ -185,9 +175,6 @@ export default {
     this.getHomeWorkInfoList();
   },
   methods: {
-    addHomeWork() {
-      this.$router.push("/homework/add");
-    },
     getHomeWorkInfoList() {
       const homeWorkTotalInfo = {
         input: this.homeworkInput,
