@@ -16,8 +16,61 @@
         </div>
       </div>
 
-      <!-- 表格区域 -->
-      <div class="table-container">
+      <!-- 移动端表格替代卡片视图 -->
+      <div class="mobile-cards" v-if="isMobile">
+        <div v-for="item in formattedHomeworkInfoList" :key="item.id" class="mobile-card">
+          <div class="card-header">
+            <h3>{{ item.title }}</h3>
+            <el-tag :type="getCompletionTagType(item.completeSituation)">
+              {{ item.completeSituation }}
+            </el-tag>
+          </div>
+          <div class="card-content">
+            <div class="info-item">
+              <span class="label">教师：</span>
+              <span>{{ item.teacherName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">班级：</span>
+              <span>{{ item.className }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">课程：</span>
+              <span>{{ item.subjectName }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">发布时间：</span>
+              <span>{{ item.sightedTime }}</span>
+            </div>
+            <div class="info-item">
+              <span class="label">截止时间：</span>
+              <span>{{ item.completeTime }}</span>
+            </div>
+          </div>
+          <div class="card-actions">
+            <el-button type="primary" size="mini" @click="goToHomeworkDetail(item)">
+              详情
+            </el-button>
+            <el-popconfirm
+              v-if="auth==2"
+              title="确定删除该作业吗？"
+              @onConfirm="deleteHomework(item)"
+            >
+              <el-button
+                slot="reference"
+                type="danger"
+                size="mini"
+                plain
+              >
+                删除
+              </el-button>
+            </el-popconfirm>
+          </div>
+        </div>
+      </div>
+
+      <!-- PC端表格视图 -->
+      <div class="table-container" v-else>
         <el-table
           :data="formattedHomeworkInfoList"
           style="width: 100%"
@@ -25,6 +78,7 @@
           @selection-change="handleSelectionChange"
           border
         >
+          <!-- 原有的表格列保持不变 -->
           <el-table-column type="expand">
             <template slot-scope="props">
               <el-form label-position="left" class="detail-form">
@@ -163,6 +217,9 @@ export default {
         completeTime: this.formatTimestamp(item.completeTime),
         completeSituation: `${item.curNum} / ${item.totalNum}`
       }));
+    },
+    isMobile() {
+      return window.innerWidth <= 768;
     }
   },
   data() {
@@ -173,8 +230,16 @@ export default {
   },
   mounted() {
     this.getHomeWorkInfoList();
+    window.addEventListener('resize', this.handleResize);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.handleResize);
   },
   methods: {
+    handleResize() {
+      // 触发响应式更新
+      this.$forceUpdate();
+    },
     getHomeWorkInfoList() {
       const homeWorkTotalInfo = {
         input: this.homeworkInput,
@@ -202,8 +267,6 @@ export default {
     async deleteHomework(row) {
       await reqDelHomework(row.id)
     },
-    toggleSelected() {},
-    deleteSelected() {},
     goToHomeworkDetail(row) {
       this.$router.push(`/homework/detail/${row.id}`);
     },
@@ -237,6 +300,20 @@ export default {
   background-color: #f5f7fa;
 }
 
+@media screen and (max-width: 768px) {
+  .homework-container {
+    padding: 10px;
+  }
+
+  .homework-content {
+    padding: 10px;
+  }
+
+  .search-input {
+    width: 100% !important;
+  }
+}
+
 .homework-content {
   background-color: #fff;
   border-radius: 8px;
@@ -254,6 +331,7 @@ export default {
 .search-area {
   display: flex;
   align-items: center;
+  width: 100%;
 }
 
 .search-input {
@@ -264,7 +342,55 @@ export default {
   margin-top: 20px;
 }
 
-/* 展开行表单样式 */
+/* 移动端卡片样式 */
+.mobile-cards {
+  margin-top: 20px;
+}
+
+.mobile-card {
+  background-color: #fff;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 15px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #303133;
+}
+
+.card-content {
+  margin-bottom: 15px;
+}
+
+.info-item {
+  display: flex;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.info-item .label {
+  color: #909399;
+  margin-right: 8px;
+  min-width: 70px;
+}
+
+.card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+/* PC端表单样式 */
 .detail-form {
   padding: 20px;
   background-color: #f8f9fb;
@@ -274,6 +400,18 @@ export default {
 .form-row {
   display: flex;
   margin-bottom: 15px;
+  flex-wrap: wrap;
+}
+
+@media screen and (max-width: 768px) {
+  .form-row {
+    flex-direction: column;
+  }
+
+  .form-row .el-form-item {
+    margin-right: 0;
+    min-width: 100%;
+  }
 }
 
 .form-row:last-child {
@@ -296,18 +434,15 @@ export default {
   font-weight: 500;
 }
 
-/* 表格内按钮间距 */
 .el-button + .el-button {
   margin-left: 8px;
 }
 
-/* 完成情况标签样式 */
 .el-tag {
   min-width: 80px;
   text-align: center;
 }
 
-/* 表格展开图标样式优化 */
 .el-table ::v-deep .el-table__expand-icon {
   transform: rotate(0deg);
   margin-right: 10px;
@@ -317,7 +452,6 @@ export default {
   transform: rotate(90deg);
 }
 
-/* 表头样式优化 */
 .el-table ::v-deep .el-table__header th {
   background-color: #f5f7fa;
   color: #606266;
@@ -328,11 +462,11 @@ export default {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 8px;  /* 使用 gap 属性设置按钮间距 */
+  gap: 8px;
 }
 
 .table-actions .el-button {
-  margin: 0 !important;  /* 覆盖 Element UI 的默认 margin */
+  margin: 0 !important;
   padding: 7px 12px;
 }
 </style>

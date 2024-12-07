@@ -1,10 +1,5 @@
 <template>
-  <div class="navbar">
-    <!-- <hamburger
-      :is-active="sidebar.opened"
-      class="hamburger-container"
-    /> -->
-    <!-- @toggleClick="toggleSideBar" -->
+  <div class="navbar" :class="{ 'mobile': isMobile }">
     <breadcrumb class="breadcrumb-container" />
 
     <div class="right-menu">
@@ -25,22 +20,52 @@
           </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
+
+      <!-- 个人信息对话框 -->
       <div class="dialog">
-        <el-dialog title="个人信息" :visible.sync="dialogFormVisible">
-          <el-carousel height="500px" direction="vertical" :autoplay="false">
-            <el-carousel-item>
+        <el-dialog
+          title="个人信息"
+          :visible.sync="dialogFormVisible"
+          :width="isMobile ? '95%' : '520px'"
+          :fullscreen="isMobile"
+          custom-class="personal-info-dialog"
+        >
+          <!-- 添加顶部导航标签 -->
+          <div class="dialog-tabs">
+            <div
+              class="tab-item"
+              :class="{ active: activeTab === 'info' }"
+              @click="activeTab = 'info'"
+            >
+              基本信息
+            </div>
+            <div
+              class="tab-item"
+              :class="{ active: activeTab === 'password' }"
+              @click="activeTab = 'password'"
+            >
+              修改密码
+            </div>
+          </div>
+
+          <!-- 使用 v-show 替代 carousel -->
+          <div class="form-container">
+            <!-- 基本信息表单 -->
+            <div v-show="activeTab === 'info'">
               <el-form
                 :model="accountInfo"
-                label-width="100px"
+                :label-width="isMobile ? '80px' : '100px'"
                 ref="accountInfo"
                 :rules="formRules"
+                class="info-form"
               >
                 <el-form-item label="账号名称" prop="name">
                   <el-input
                     v-model="accountInfo.name"
-                    style="width: 150px"
+                    :style="isMobile ? 'width: 100%' : 'width: 150px'"
                   ></el-input>
                 </el-form-item>
+
                 <el-form-item label="账号标识" prop="avatar">
                   <el-upload
                     class="avatar-uploader"
@@ -57,65 +82,71 @@
                     <i v-else class="el-icon-plus avatar-uploader-icon"></i>
                   </el-upload>
                 </el-form-item>
+
                 <el-form-item label="手机号" prop="phone">
                   <el-input
                     v-model="accountInfo.phone"
-                    style="width: 300px"
+                    :style="isMobile ? 'width: 100%' : 'width: 300px'"
                   ></el-input>
                 </el-form-item>
+
                 <el-form-item label="邮箱" prop="email">
                   <el-input
                     v-model="accountInfo.email"
-                    style="width: 300px"
+                    :style="isMobile ? 'width: 100%' : 'width: 300px'"
                   ></el-input>
                 </el-form-item>
               </el-form>
-              <div style="margin-left: 300px">
+
+              <div class="dialog-footer" :class="{ 'mobile': isMobile }">
                 <el-button @click="dialogFormVisible = false">取 消</el-button>
-                <el-button type="primary" @click="confirmBasicInfo"
-                  >确 定</el-button
-                >
+                <el-button type="primary" @click="confirmBasicInfo">确 定</el-button>
               </div>
-            </el-carousel-item>
-            <el-carousel-item>
-              <span class="item2-head">修改密码</span>
+            </div>
+
+            <!-- 修改密码表单 -->
+            <div v-show="activeTab === 'password'">
               <el-form
                 :model="passwordInfo"
-                label-width="100px"
+                :label-width="isMobile ? '80px' : '100px'"
                 ref="passwordInfo"
                 :rules="formRules2"
-                style="margin-top: 40px"
+                class="password-form"
               >
                 <el-form-item label="旧密码" prop="oldPassword">
                   <el-input
                     v-model="passwordInfo.oldPassword"
                     placeholder="输入旧密码"
-                    style="width: 300px"
+                    :style="isMobile ? 'width: 100%' : 'width: 300px'"
+                    type="password"
                   ></el-input>
                 </el-form-item>
+
                 <el-form-item label="新密码" prop="newPassword1">
                   <el-input
                     v-model="passwordInfo.newPassword1"
                     placeholder="输入新密码"
-                    style="width: 300px"
+                    :style="isMobile ? 'width: 100%' : 'width: 300px'"
+                    type="password"
                   ></el-input>
                 </el-form-item>
+
                 <el-form-item label="确认密码" prop="newPassword2">
                   <el-input
                     v-model="passwordInfo.newPassword2"
-                    style="width: 300px"
+                    :style="isMobile ? 'width: 100%' : 'width: 300px'"
                     placeholder="确认密码"
+                    type="password"
                   ></el-input>
                 </el-form-item>
               </el-form>
-              <div style="margin-left: 300px">
+
+              <div class="dialog-footer" :class="{ 'mobile': isMobile }">
                 <el-button @click="dialogFormVisible = false">取 消</el-button>
-                <el-button type="primary" @click="confirmEditPassword"
-                  >确 定</el-button
-                >
+                <el-button type="primary" @click="confirmEditPassword">确 定</el-button>
               </div>
-            </el-carousel-item>
-          </el-carousel>
+            </div>
+          </div>
         </el-dialog>
       </div>
     </div>
@@ -145,6 +176,8 @@ export default {
       } else callback();
     };
     return {
+      isMobile: false,
+      activeTab: 'info', // 添加活动标签状态
       dialogFormVisible: false,
       accountInfo: {
         accountId: null,
@@ -197,10 +230,20 @@ export default {
   computed: {
     ...mapGetters(["sidebar", "avatar"]),
   },
+  mounted(){
+    this.checkDeviceWidth()
+    window.addEventListener('resize', this.checkDeviceWidth)
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.checkDeviceWidth)
+  },
   methods: {
     // toggleSideBar() {
     //   this.$store.dispatch("app/toggleSideBar");
     // },
+    checkDeviceWidth() {
+      this.isMobile = window.innerWidth <= 768
+    },
     personCenter() {
       this.accountInfo.accountId = this.$store.getters.accountId;
       this.accountInfo.name = this.$store.getters.name;
@@ -324,6 +367,211 @@ export default {
   margin: 50px;
   font-size: 30px;
 }
+
+.dialog-tabs {
+  display: flex;
+  border-bottom: 1px solid #EBEEF5;
+  margin-bottom: 20px;
+
+  .tab-item {
+    padding: 12px 20px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    color: #606266;
+
+    &.active {
+      color: #409EFF;
+      font-weight: 500;
+
+      &::after {
+        content: '';
+        position: absolute;
+        bottom: -1px;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background-color: #409EFF;
+      }
+    }
+
+    &:hover {
+      color: #409EFF;
+    }
+  }
+}
+
+// 移动端样式优化
+@media screen and (max-width: 768px) {
+  .personal-info-dialog {
+    .el-dialog__body {
+      padding: 0;  // 移除默认内边距
+    }
+
+    .dialog-tabs {
+      padding: 0 15px;
+      background-color: #f5f7fa;
+
+      .tab-item {
+        flex: 1;
+        text-align: center;
+        padding: 15px 0;
+      }
+    }
+
+    .form-container {
+      padding: 15px;
+    }
+
+    .dialog-footer {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: 10px 15px;
+      background-color: #fff;
+      box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+      z-index: 100;
+
+      .el-button {
+        width: 45%;
+        margin: 0 5px;
+      }
+    }
+
+    // 为底部按钮留出空间
+    .info-form, .password-form {
+      padding-bottom: 60px;
+    }
+  }
+}
+
+.navbar {
+  padding-left: 10px;
+  height: 50px;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 21, 41, 0.08);
+
+  &.mobile {
+    padding-left: 5px;
+
+    .right-menu {
+      .avatar-container {
+        margin-right: 15px;
+      }
+    }
+  }
+}
+
+// 移动端样式
+.personal-info-dialog {
+  .form-container {
+    padding: 20px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .form-title {
+    font-size: 18px;
+    margin-bottom: 20px;
+    color: #303133;
+  }
+
+  .info-form, .password-form {
+    flex: 1;
+    overflow-y: auto;
+  }
+
+  .mobile.dialog-footer {
+    padding: 10px 0;
+    text-align: center;
+
+    .el-button {
+      width: 45%;
+      margin: 0 5px;
+    }
+  }
+}
+
+// 头像上传样式优化
+.avatar-uploader {
+  .el-upload {
+    border: 1px dashed #d9d9d9;
+    border-radius: 6px;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+
+    &:hover {
+      border-color: #409eff;
+    }
+  }
+
+  .avatar-uploader-icon {
+    font-size: 20px;
+    color: #8c939d;
+    width: 120px;
+    height: 120px;
+    line-height: 120px;
+    text-align: center;
+    border: #8c939d 1px dotted;
+  }
+
+  .avatar {
+    width: 120px;
+    height: 120px;
+    display: block;
+  }
+}
+
+// 移动端对话框样式
+@media screen and (max-width: 768px) {
+  .personal-info-dialog {
+    margin: 0 !important;
+
+    .el-dialog__body {
+      padding: 10px;
+      height: calc(100vh - 110px);  // 减去header和footer的高度
+    }
+
+    .form-container {
+      padding: 10px;
+    }
+
+    .el-form-item {
+      margin-bottom: 15px;
+    }
+
+    .avatar-uploader {
+      display: flex;
+      justify-content: center;
+
+      .avatar-uploader-icon {
+        width: 100px;
+        height: 100px;
+        line-height: 100px;
+      }
+
+      .avatar {
+        width: 100px;
+        height: 100px;
+      }
+    }
+  }
+
+  .dialog-footer {
+    position: sticky;
+    bottom: 0;
+    background-color: #fff;
+    padding: 10px 0;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+  }
+}
+
 
 .navbar {
   padding-left: 10px;

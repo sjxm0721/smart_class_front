@@ -2,7 +2,7 @@
   <div class="resource-container">
     <div class="resource-content">
       <!-- 顶部搜索栏 -->
-      <div class="operation-bar">
+      <div class="operation-bar" :class="{ 'mobile': isMobile }">
         <div class="search-area">
           <el-input
             v-model="searchInput"
@@ -16,6 +16,7 @@
         </div>
         <div class="action-area">
           <el-button
+            v-if="auth==2"
             type="primary"
             icon="el-icon-upload2"
             size="small"
@@ -26,8 +27,8 @@
         </div>
       </div>
 
-      <!-- 资源列表 -->
-      <div class="table-container">
+      <!-- 桌面端资源列表 -->
+      <div class="table-container" v-if="!isMobile">
         <el-table
           :data="resourceList"
           style="width: 100%"
@@ -96,24 +97,73 @@
             </template>
           </el-table-column>
         </el-table>
-
-        <!-- 空状态 -->
-        <el-empty
-          v-if="!loading && !resourceList.length"
-          description="暂无资源"
-        >
-        </el-empty>
       </div>
+
+      <!-- 移动端资源列表 -->
+      <div class="mobile-resource-list" v-else>
+        <div v-loading="loading">
+          <el-card v-for="resource in resourceList"
+                   :key="resource.id"
+                   class="mobile-resource-item"
+                   shadow="hover">
+            <div class="mobile-resource-header">
+              <span class="resource-name">
+                <i class="el-icon-document resource-icon"></i>
+                {{ resource.name }}
+              </span>
+            </div>
+            <div class="mobile-resource-content">
+              <div class="mobile-resource-brief" v-if="resource.brief">
+                {{ resource.brief }}
+              </div>
+              <div class="mobile-resource-info">
+                <span class="info-item">
+                  <i class="el-icon-user"></i>
+                  {{ resource.teacherName || '未知' }}
+                </span>
+                <span class="info-item">
+                  <i class="el-icon-document"></i>
+                  {{ formatFileSize(resource.size) }}
+                </span>
+                <span class="info-item">
+                  <i class="el-icon-time"></i>
+                  {{ formatTime(resource.updateTime) }}
+                </span>
+              </div>
+            </div>
+            <div class="mobile-resource-actions">
+              <el-button
+                type="primary"
+                size="mini"
+                icon="el-icon-download"
+                @click="handleDownload(resource)"
+              >
+                下载
+              </el-button>
+            </div>
+          </el-card>
+        </div>
+      </div>
+
+      <!-- 空状态 -->
+      <el-empty
+        v-if="!loading && !resourceList.length"
+        description="暂无资源"
+      >
+      </el-empty>
+
+      <!-- 上传对话框 -->
       <el-dialog
         title="上传资源"
         :visible.sync="uploadDialogVisible"
-        width="500px"
+        :width="isMobile ? '95%' : '500px'"
+        class="upload-dialog"
       >
         <el-form
           :model="uploadForm"
           :rules="uploadRules"
           ref="uploadForm"
-          label-width="80px"
+          :label-width="isMobile ? '70px' : '80px'"
         >
           <el-form-item label="资源名称" prop="name">
             <el-input v-model="uploadForm.name" placeholder="请输入资源名称"></el-input>
@@ -155,6 +205,8 @@
 
 <script>
 import { reqDownloadResources, reqGetResourceList, reqAddResource } from '@/api/activity/resource'
+import { mapState } from 'vuex'
+import { auto } from 'html-webpack-plugin/lib/chunksorter'
 
 export default {
   name: 'SubjectResource',
@@ -164,8 +216,12 @@ export default {
       required: true
     }
   },
+  computed:{
+    ...mapState("user",["auth"])
+  },
   data() {
     return {
+      isMobile: false,
       loading: false,
       searchInput: '',
       resourceList: [],
@@ -193,10 +249,16 @@ export default {
   },
   created() {
     this.fetchResourceList()
+    this.checkDeviceWidth()
+    window.addEventListener('resize', this.checkDeviceWidth)
   },
   methods: {
+    auto,
     handleCancel() {
       this.uploadDialogVisible = false
+    },
+    checkDeviceWidth() {
+      this.isMobile = window.innerWidth <= 768
     },
     // 获取资源列表
     async fetchResourceList() {
@@ -458,5 +520,123 @@ export default {
   line-height: 1.4;
   color: #909399;
   margin-top: 8px;
+}
+
+.resource-container {
+  padding: 20px;
+  height: 100%;
+  background-color: #f5f7fa;
+}
+
+.resource-content {
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  padding: 20px;
+}
+
+.operation-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+/* 移动端样式 */
+@media screen and (max-width: 768px) {
+  .resource-container {
+    padding: 10px;
+  }
+
+  .resource-content {
+    padding: 10px;
+  }
+
+  .operation-bar.mobile {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .operation-bar.mobile .search-area {
+    width: 100%;
+  }
+
+  .operation-bar.mobile .search-input {
+    width: 100%;
+  }
+
+  .operation-bar.mobile .action-area {
+    width: 100%;
+    margin-left: 0;
+  }
+
+  .operation-bar.mobile .action-area .el-button {
+    width: 100%;
+  }
+
+  .mobile-resource-item {
+    margin-bottom: 10px;
+  }
+
+  .mobile-resource-header {
+    margin-bottom: 10px;
+  }
+
+  .mobile-resource-header .resource-name {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .mobile-resource-content {
+    margin: 10px 0;
+  }
+
+  .mobile-resource-brief {
+    color: #666;
+    font-size: 14px;
+    margin-bottom: 10px;
+    word-break: break-all;
+  }
+
+  .mobile-resource-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-size: 13px;
+    color: #999;
+  }
+
+  .info-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .mobile-resource-actions {
+    margin-top: 10px;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* 上传对话框移动端样式 */
+  .upload-dialog {
+    max-width: 95vw;
+  }
+
+  .upload-dialog .el-dialog__body {
+    padding: 10px 20px;
+  }
+
+  .upload-dialog .el-form-item {
+    margin-bottom: 15px;
+  }
+
+  .upload-area {
+    width: 100%;
+  }
+
+  .el-upload__tip {
+    font-size: 12px;
+  }
 }
 </style>

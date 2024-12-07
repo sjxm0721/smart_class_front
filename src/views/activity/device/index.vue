@@ -2,54 +2,35 @@
   <div>
     <div class="border">
       <div class="header-all">
-        <div class="header-left">
-          <span style="margin-left: 20px">学校名称：</span>
-          <el-select
-            v-model="selectSchool"
-            placeholder="请选择"
-            style="width: 150px"
-            :disabled="isDisabled"
-          >
-            <el-option
-              v-for="item in schoolArray"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
-              <span style="float: left">{{ item.label }}</span>
-            </el-option>
-          </el-select>
-          <span style="margin-left: 20px">使用状况：</span>
-          <el-select
-            v-model="selectStatus"
-            placeholder="请选择"
-            style="width: 120px"
-          >
-            <el-option
-              v-for="item in inUse"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
-              <span style="float: left">{{ item.label }}</span>
-            </el-option>
-          </el-select>
-          <span style="margin-left: 20px">类型：</span>
-          <el-select
-            v-model="selectType"
-            placeholder="请选择"
-            style="width: 120px"
-          >
-            <el-option
-              v-for="item in typeEnum"
-              :key="item.value"
-              :label="item.label"
-              :value="item.value"
-            >
-              <span style="float: left">{{ item.label }}</span>
-            </el-option>
-          </el-select>
-        </div>
+        <el-form class="header-form" :inline="true" @submit.native.prevent>
+          <el-form-item>
+            <span>学校名称：</span>
+            <el-select v-model="selectSchool" placeholder="请选择" :disabled="isDisabled">
+              <el-option v-for="item in schoolArray" :key="item.value" :label="item.label" :value="item.value">
+                <span>{{ item.label }}</span>
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <span>使用状况：</span>
+            <el-select v-model="selectStatus" placeholder="请选择">
+              <el-option v-for="item in inUse" :key="item.value" :label="item.label" :value="item.value">
+                <span>{{ item.label }}</span>
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <span>类型：</span>
+            <el-select v-model="selectType" placeholder="请选择">
+              <el-option v-for="item in typeEnum" :key="item.value" :label="item.label" :value="item.value">
+                <span>{{ item.label }}</span>
+              </el-option>
+            </el-select>
+          </el-form-item>
+          <el-form-item>
+            <el-input v-model="input" placeholder="输入设备名搜索" @change="changeInput"></el-input>
+          </el-form-item>
+        </el-form>
         <div class="header-right">
           <el-button type="success" @click="showApprovalDialog">
             审批管理<i class="el-icon-s-check el-icon--right"></i>
@@ -59,121 +40,68 @@
           </el-button>
 
           <!-- 新增批量导入功能 -->
-          <el-upload
-            class="upload-btn"
-            action="#"
-            :show-file-list="false"
-            :before-upload="beforeUpload"
-            :http-request="handleUpload"
-            accept=".xlsx,.xls"
-          >
-            <el-button type="warning" style="margin-left: 10px">
+          <el-upload class="upload-btn" action="#" :show-file-list="false" :before-upload="beforeUpload"
+                     :http-request="handleUpload" accept=".xlsx,.xls">
+            <el-button type="warning">
               批量导入<i class="el-icon-upload el-icon--right"></i>
             </el-button>
           </el-upload>
 
-          <el-button type="info" style="margin-left: 10px" @click="downloadTemplate">
+          <el-button type="info" @click="downloadTemplate">
             下载模板<i class="el-icon-download el-icon--right"></i>
           </el-button>
         </div>
       </div>
       <div class="body-all">
         <el-table :data="devicePageInfo" max-height="500">
-          <el-table-column
-            label="设备名"
-            prop="deviceName"
-            width="150"
-          ></el-table-column>
-          <el-table-column
-            label="类型"
-            prop="typeValue"
-            width="150"
-          ></el-table-column>
+          <el-table-column label="设备名" prop="deviceName"></el-table-column>
+          <el-table-column label="类型" prop="typeValue"></el-table-column>
           <el-table-column label="设备状态">
-            <template slot-scope="{ row, $index }">
-              <el-tag type="success" v-if="row.isFault == 0">正常</el-tag>
-              <el-tag type="danger" v-else>故障</el-tag>
+            <template slot-scope="{ row }">
+              <el-tag :type="row.isFault == 0 ? 'success' : 'danger'">{{ row.isFault == 0 ? '正常' : '故障' }}</el-tag>
             </template>
           </el-table-column>
           <el-table-column label="使用状况">
-            <template slot-scope="{ row, $index }">
-              <el-tag type="success" v-if="row.inUse == 1">使用中</el-tag>
-              <el-tag type="danger" v-else>未使用</el-tag>
+            <template slot-scope="{ row }">
+              <el-tag :type="row.inUse == 1 ? 'success' : 'info'">{{ row.inUse == 1 ? '使用中' : '未使用' }}</el-tag>
             </template>
           </el-table-column>
-          <el-table-column label="出借学生" width="150" prop="studentName">
-          </el-table-column>
-          <el-table-column label="出借班级" width="150" prop="className">
-          </el-table-column>
-          <el-table-column width="250">
-            <template slot="header" slot-scope="scope">
-              <el-input
-                v-model="input"
-                size="mini"
-                placeholder="输入设备名搜索"
-                @change="changeInput"
-              />
-            </template>
-            <template slot-scope="{ row, $index }">
-              <el-button
-                type="warning"
-                size="mini"
-                @click="addOrEditDevice(row)"
-              >编辑
-              </el-button
-              >
-
-              <el-button
-                slot="reference"
-                type="danger"
-                size="mini"
-                style="margin-left: 10px"
-              >删除
-              </el-button
-              >
+          <el-table-column label="出借学生" prop="studentName"></el-table-column>
+          <el-table-column label="出借班级" prop="className"></el-table-column>
+          <el-table-column>
+            <template slot-scope="{ row }">
+              <el-button type="warning" size="small" @click="addOrEditDevice(row)">编辑</el-button>
+              <el-popconfirm confirm-button-text="确定" cancel-button-text="取消" icon="el-icon-info" icon-color="red"
+                             title="确定删除该设备吗？" @onConfirm="deleteDevice(row)">
+                <el-button slot="reference" type="danger" size="small">删除</el-button>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
-        <el-dialog
-          title="设备信息"
-          :visible.sync="dialogFormVisible"
-          :show-close="false"
-        >
+        <!-- 修改设备信息对话框的表单部分 -->
+        <el-dialog title="设备信息" :visible.sync="dialogFormVisible" :show-close="false">
           <el-form :model="deviceInfo" label-width="100px">
             <el-form-item label="设备名称">
-              <el-input
-                v-model="deviceInfo.deviceName"
-                style="width: 250px"
-              ></el-input>
+              <el-input v-model="deviceInfo.deviceName"></el-input>
             </el-form-item>
             <el-form-item label="所在学校">
-              <el-select
-                v-model="deviceInfo.schoolId"
-                :disabled="isDisabled"
-                placeholder="请选择所在学校"
-              >
-                <el-option
-                  v-for="item in schoolArray"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                >
-                  <span style="float: left">{{ item.label }}</span>
+              <el-select v-model="deviceInfo.schoolId" :disabled="isDisabled" placeholder="请选择所在学校">
+                <el-option v-for="item in schoolArray" :key="item.value" :label="item.label" :value="item.value">
+                  <span>{{ item.label }}</span>
+                </el-option>
+              </el-select>
+            </el-form-item>
+            <el-form-item label="设备类型">
+              <el-select v-model="deviceInfo.type" placeholder="请选择设备类型">
+                <el-option v-for="item in typeEnum.slice(1)" :key="item.value" :label="item.label" :value="item.value">
+                  <span>{{ item.label }}</span>
                 </el-option>
               </el-select>
             </el-form-item>
             <el-form-item label="设备状态">
-              <el-select
-                v-model="deviceInfo.isFault"
-                placeholder="请选择设备状态"
-              >
-                <el-option
-                  v-for="item in isFault"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                >
-                  <span style="float: left">{{ item.label }}</span>
+              <el-select v-model="deviceInfo.isFault" placeholder="请选择设备状态">
+                <el-option v-for="item in isFault" :key="item.value" :label="item.label" :value="item.value">
+                  <span>{{ item.label }}</span>
                 </el-option>
               </el-select>
             </el-form-item>
@@ -183,24 +111,12 @@
             <el-button type="primary" @click="confirmClick">确 定</el-button>
           </div>
         </el-dialog>
-        <el-dialog
-          :visible.sync="dialogFormVisible2"
-          label-width="100px"
-          :show-close="false"
-        >
+        <el-dialog :visible.sync="dialogFormVisible2" label-width="100px" :show-close="false">
           <el-form :model="deviceInfo">
             <el-form-item label="班级绑定">
-              <el-select
-                v-model="deviceInfo.classId"
-                placeholder="请选择绑定班级"
-              >
-                <el-option
-                  v-for="item in classArray"
-                  :key="item.value"
-                  :label="item.label"
-                  :value="item.value"
-                >
-                  <span style="float: left">{{ item.label }}</span>
+              <el-select v-model="deviceInfo.classId" placeholder="请选择绑定班级">
+                <el-option v-for="item in classArray" :key="item.value" :label="item.label" :value="item.value">
+                  <span>{{ item.label }}</span>
                 </el-option>
               </el-select>
             </el-form-item>
@@ -210,16 +126,11 @@
             <el-button type="primary" @click="confirmClick2">确 定</el-button>
           </div>
         </el-dialog>
-        <el-dialog
-          title="设备申请审批"
-          :visible.sync="approvalDialogVisible"
-          width="800px"
-          :close-on-click-modal="false"
-        >
+        <el-dialog title="设备申请审批" :visible.sync="approvalDialogVisible" :close-on-click-modal="false">
           <div class="approval-container">
             <el-table :data="approvalList" border v-loading="loadingApprovals">
-              <el-table-column prop="deviceName" label="设备名称" width="150"></el-table-column>
-              <el-table-column prop="studentName" label="申请学生" width="120"></el-table-column>
+              <el-table-column prop="deviceName" label="设备名称"></el-table-column>
+              <el-table-column prop="studentName" label="申请学生"></el-table-column>
               <el-table-column prop="startTime" label="开始时间">
                 <template slot-scope="scope">
                   {{ formatDate(scope.row.startTime) }}
@@ -231,18 +142,10 @@
                 </template>
               </el-table-column>
               <el-table-column prop="ddescribe" label="用途说明" show-overflow-tooltip></el-table-column>
-              <el-table-column label="操作" width="200" fixed="right">
+              <el-table-column label="操作" width="120">
                 <template slot-scope="scope">
-                  <el-button
-                    type="success"
-                    size="small"
-                    @click="handleApprove(scope.row, true)"
-                  >同意</el-button>
-                  <el-button
-                    type="danger"
-                    size="small"
-                    @click="handleApprove(scope.row, false)"
-                  >拒绝</el-button>
+                  <el-button type="success" size="small" @click="handleApprove(scope.row, true)">同意</el-button>
+                  <el-button type="danger" size="small" @click="handleApprove(scope.row, false)">拒绝</el-button>
                 </template>
               </el-table-column>
             </el-table>
@@ -251,15 +154,9 @@
       </div>
       <div class="bottom-all">
         <div class="block">
-          <el-pagination
-            @size-change="handleSizeChange"
-            @current-change="handleCurrentChange"
-            :current-page="currentPage"
-            :page-sizes="[5, 10, 20, 50]"
-            :page-size="pageSize"
-            layout="total, sizes, prev, pager, next,jumper"
-            :total="total == '' ? 0 : total"
-          >
+          <el-pagination @size-change="handleSizeChange" @current-change="handleCurrentChange" :current-page="currentPage"
+                         :page-sizes="[5, 10, 20, 50]" :page-size="pageSize" layout="total, sizes, prev, pager, next, jumper"
+                         :total="total == '' ? 0 : total">
           </el-pagination>
         </div>
       </div>
@@ -368,6 +265,7 @@ export default {
         schoolId: null,
         classId: null,
         isFault: null,
+        type: null,
         lastRepairTime: ''
       },
       pageSize: 5,
@@ -414,6 +312,7 @@ export default {
         this.deviceInfo.schoolId = row.schoolId
         this.deviceInfo.deviceName = row.deviceName
         this.deviceInfo.isFault = row.isFault
+        this.deviceInfo.type = row.type  // 添加类型赋值
         this.deviceInfo.lastRepairTime = row.lastRepairTime
       }
       this.dialogFormVisible = true
@@ -426,7 +325,8 @@ export default {
         schoolId: this.isDisabled == true ? this.$store.getters.schoolId : null,
         classId: '',
         lastRepairTime: '',
-        isFault: null
+        isFault: null,
+        type: null  // 重置类型
       }
     },
     confirmClick() {
@@ -444,11 +344,11 @@ export default {
             this.deviceInfo = {
               deviceId: null,
               deviceName: '',
-              schoolId:
-                this.isDisabled == true ? this.$store.getters.schoolId : null,
+              schoolId: this.isDisabled == true ? this.$store.getters.schoolId : null,
               classId: '',
               lastRepairTime: '',
-              isFault: null
+              isFault: null,
+              type: null  // 重置类型
             }
           })
           .catch((err) => {
@@ -471,11 +371,11 @@ export default {
             this.deviceInfo = {
               deviceId: null,
               deviceName: '',
-              schoolId:
-                this.isDisabled == true ? this.$store.getters.schoolId : null,
+              schoolId: this.isDisabled == true ? this.$store.getters.schoolId : null,
               classId: '',
               lastRepairTime: '',
-              isFault: null
+              isFault: null,
+              type: null  // 重置类型
             }
           })
           .catch((err) => {
@@ -745,33 +645,6 @@ export default {
 </script>
 
 <style>
-
-.border {
-  background-color: #fff;
-  margin: 20px;
-  padding: 20px;
-  border-radius: 10px;
-}
-
-/* 新增上传按钮样式 */
-.upload-btn {
-  display: inline-block;
-}
-
-.upload-btn .el-upload {
-  display: inline-block;
-}
-
-.header-right {
-  float: right;
-  display: flex;
-  align-items: center;
-}
-
-.header-right .el-button {
-  margin-bottom: 0;
-}
-
 .border {
   background-color: #fff;
   margin: 20px;
@@ -781,27 +654,43 @@ export default {
 
 .header-all {
   margin: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
 }
 
-.header-all::before,
-.header-all::after {
-  content: "";
-  display: table;
+.header-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-right: 10px;
 }
 
-.header-all::after {
-  clear: both;
-}
-
-.header-left {
-  float: left;
+.header-form .el-form-item {
   display: flex;
   align-items: center;
-  white-space: nowrap;
+  margin-bottom: 10px;
+  margin-right: 10px;
+}
+
+.header-form .el-select,
+.header-form .el-input {
+  width: 150px;
 }
 
 .header-right {
-  float: right;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  margin-left: auto;
+  margin-bottom: 10px;
+}
+
+.header-right .el-button {
+  margin-left: 10px;
+  margin-bottom: 10px;
 }
 
 .body-all {
@@ -812,13 +701,81 @@ export default {
 .bottom-all {
   display: flex;
   justify-content: center;
+  margin: 10px 0;
 }
 
 .approval-container {
   margin: -20px;
 }
 
+/*  适配移动端 */
+@media screen and (max-width: 768px) {
+  .header-all {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-form {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+    justify-content: space-between;
+  }
+
+  .header-form .el-form-item {
+    margin-right: 0;
+    margin-bottom: 10px;
+    width: 48%;
+  }
+
+  .header-form .el-select,
+  .header-form .el-input {
+    width: 100%;
+  }
+
+  .header-right {
+    width: 100%;
+    margin-left: 0;
+    justify-content: space-between;
+  }
+
+  .header-right .el-button {
+    margin-left: 0;
+    width: 48%;
+  }
+
+  .el-table {
+    font-size: 12px;
+  }
+
+  .el-dialog {
+    width: 90%;
+  }
+
+  .el-pagination {
+    white-space: nowrap;
+  }
+}
+
 .header-right .el-button {
-  margin-left: 10px;
+  padding: 8px 10px;
+  margin-left: 5px;
+  margin-bottom: 5px;
+}
+.header-right .el-button {
+  font-size: 12px;
+}
+
+
+@media screen and (max-width: 768px) {
+  .header-right {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .header-right .el-button {
+    width: 100%;
+    margin-left: 0;
+  }
 }
 </style>

@@ -16,13 +16,13 @@ export const reqGetClassInfoList=(schoolId)=>{
     })
 }
 
-export const reqGetClassPageInfo=(schoolId,input,currentPage,pageSize)=>{
-    return request({
-        url:'myclass/page',
-        method:'get',
-        params:{schoolId,input,currentPage,pageSize}
-    })
-}
+// export const reqGetClassPageInfo=(schoolId,input,currentPage,pageSize)=>{
+//     return request({
+//         url:'myclass/page',
+//         method:'get',
+//         params:{schoolId,input,currentPage,pageSize}
+//     })
+// }
 
 export const reqAddClass=(classInfo)=>{
     return request({
@@ -72,5 +72,14 @@ export const reqBindTeachers = (data) => {
     url: 'myclass/bind-teachers',
     method: 'post',
     data
+  })
+}
+
+// api/activity/myClass.js
+export const reqGetClassPageInfo = (params) => {
+  return request({
+    url: 'myclass/page', // 你的实际API地址
+    method: 'get',
+    params // 使用params而不是data，因为是GET请求
   })
 }

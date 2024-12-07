@@ -36,7 +36,7 @@
         <img :src="resource.path" alt="Image Preview">
       </div>
       <div v-else-if="['doc', 'docx'].includes(resource.type)" class="doc-preview">
-        <iframe :src="docUrl" frameborder="0" width="100%" height="600px"></iframe>
+        <div v-html="docHtml"></div>
       </div>
     </main>
     <footer>
@@ -48,7 +48,8 @@
 <script>
 import * as pdfjsLib from 'pdfjs-dist/webpack';
 import videojs from 'video.js';
-import _ from 'lodash';  // 添加lodash引入
+import _ from 'lodash';
+import mammoth from 'mammoth';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = '/pdf/pdf.worker.js';
 
@@ -58,7 +59,7 @@ export default {
     return {
       resource: {},
       textContent: '',
-      docUrl: '',
+      docHtml: '',
       canvasReady: false,
       pdfError: null,
       currentPage: 1,
@@ -71,12 +72,10 @@ export default {
   },
   mounted() {
     this.initializeResource();
-    // 添加resize监听器
     this.resizeHandler = _.debounce(this.handleResize, 300);
     window.addEventListener('resize', this.resizeHandler);
   },
   beforeDestroy() {
-    // 清理资源
     if (this.pdfDoc) {
       this.pdfDoc.destroy();
     }
@@ -123,21 +122,21 @@ export default {
     goBack() {
       this.$router.go(-1);
     },
-    previewResource() {
+    async previewResource() {
       try {
         switch (this.resource.type) {
           case 'text':
-            this.previewTextFile();
+            await this.previewTextFile();
             break;
           case 'pdf':
-            this.previewPDFFile();
+            await this.previewPDFFile();
             break;
           case 'video':
             this.previewVideoFile();
             break;
           case 'doc':
           case 'docx':
-            this.previewDocFile();
+            await this.previewDocFile();
             break;
         }
       } catch (error) {
@@ -205,22 +204,17 @@ export default {
           return;
         }
 
-        // 获取当前页
         const page = await this.pdfDoc.getPage(this.currentPage);
-
-        // 从页面直接获取原始尺寸
-        const pageWidth = page.view[2]; // 原始宽度
-        const pageHeight = page.view[3]; // 原始高度
+        const pageWidth = page.view[2];
+        const pageHeight = page.view[3];
         console.log('Original page size:', pageWidth, pageHeight);
 
-        // 获取容器宽度
-        const containerWidth = container.clientWidth - 40; // 减去padding
+        const containerWidth = container.clientWidth - 40;
 
-        // 计算缩放比例
-        let scale=1.0;
+        let scale = 1.0;
         if (this.scale === 'auto' || isInitial) {
           scale = containerWidth / pageWidth;
-          scale = Math.min(Math.max(scale, 0.5), 2.0); // 限制缩放范围
+          scale = Math.min(Math.max(scale, 0.5), 2.0);
           if (isInitial) {
             this.scale = scale.toString();
           }
@@ -228,34 +222,23 @@ export default {
           scale = parseFloat(this.scale) || 1.0;
         }
 
-
-        // 创建viewport（添加0度旋转来修正倒立问题）
         const viewport = page.getViewport(scale);
 
-        // 计算最终尺寸
         const finalWidth = pageWidth * scale;
         const finalHeight = pageHeight * scale;
 
-        // 设置canvas尺寸
         canvas.width = finalWidth;
         canvas.height = finalHeight;
 
         console.log('Final canvas size:', finalWidth, finalHeight);
 
-        // 获取渲染上下文
         const context = canvas.getContext('2d', { alpha: false });
 
-        // 清除画布并设置白色背景
         context.fillStyle = 'white';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
+        console.log('viewport', viewport);
 
-
-
-
-        console.log("viewport",viewport)
-
-        // 准备渲染上下文
         const renderContext = {
           canvasContext: context,
           viewport: viewport,
@@ -264,14 +247,11 @@ export default {
           background: 'white',
         };
 
-        // 开始渲染
         this.renderTask = page.render(renderContext);
         await this.renderTask.promise;
 
-
         console.log('Render complete with scale:', scale);
         this.canvasReady = true;
-
       } catch (error) {
         if (error.name === 'RenderingCancelled') {
           console.log('取消了之前的渲染');
@@ -306,8 +286,16 @@ export default {
         console.error('视频播放器初始化失败:', error);
       }
     },
-    previewDocFile() {
-      this.docUrl = `https://view.officeapps.live.com/op/view.aspx?src=${encodeURIComponent(this.resource.path)}`;
+    async previewDocFile() {
+      try {
+        const response = await fetch(this.resource.path);
+        const arrayBuffer = await response.arrayBuffer();
+        const result = await mammoth.convertToHtml({ arrayBuffer: arrayBuffer });
+        this.docHtml = result.value;
+      } catch (error) {
+        console.error('转换 Word 文档失败:', error);
+        this.docHtml = '<div class="error">无法预览 Word 文档</div>';
+      }
     },
     prevPage() {
       if (this.currentPage > 1) {
@@ -372,7 +360,7 @@ main {
   background-color: #f8f9fa;
   display: flex;
   justify-content: center;
-  align-items: flex-start;  /* 改回 flex-start 避免垂直居中导致的滚动问题 */
+  align-items: flex-start;
   position: relative;
   padding: 20px;
   overflow: auto;
@@ -419,8 +407,8 @@ main {
   transform-origin: top center;
 }
 
-/* 调整加载和错误提示的位置 */
-.loading, .error {
+.loading,
+.error {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -435,7 +423,6 @@ main {
   color: #dc3545;
 }
 
-/* 滚动条样式 */
 .canvas-container::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -455,7 +442,6 @@ main {
   background: #555;
 }
 
-/* 其他样式保持不变 */
 .text-preview pre {
   white-space: pre-wrap;
   font-size: 16px;
@@ -479,7 +465,8 @@ main {
 
 .doc-preview {
   width: 100%;
-  height: 600px;
+  padding: 20px;
+  background-color: #fff;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
 }

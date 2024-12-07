@@ -5,7 +5,7 @@ const getDefaultState=()=>{
         classInfoList:[],
         classInfo:[],
         classPageInfo:[],
-        total:"",
+        total:0,
     }
 }
 
@@ -19,7 +19,8 @@ const mutations={
         state.classInfoList=classInfoList
     },
     SET_CLASS_PAGE_INFO:(state,classPageInfo)=>{
-        state.classPageInfo=classPageInfo;
+      state.classPageInfo = classPageInfo.records;
+      state.total = Number(classPageInfo.total);
     },
     SET_TOTAL:(state,total)=>{
         state.total=total;
@@ -39,14 +40,17 @@ const actions={
         else return Promise.reject(new Error(result.msg));
     },
     async getClassPageInfo({commit},pageInfo){
-        const {schoolId,input,currentPage,pageSize}=pageInfo;
-        let result = await reqGetClassPageInfo(schoolId,input,currentPage,pageSize);
-        if(result.code==200){
-            commit('SET_CLASS_PAGE_INFO',result.data['records']);
-            commit('SET_TOTAL',result.data['total']);
-            return 'ok';
+      try {
+        const response = await reqGetClassPageInfo(pageInfo);
+        if (response.code === 200) {
+          commit('SET_CLASS_PAGE_INFO', response.data);
+          return response;
+        } else {
+          return Promise.reject(response.msg || '获取班级列表失败');
         }
-        else return Promise.reject(new Error(result.msg));
+      } catch (error) {
+        return Promise.reject(error);
+      }
     },
     async addClass({commit},classInfo){
         let result=await reqAddClass(classInfo);

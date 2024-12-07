@@ -1,49 +1,50 @@
 <template>
   <div class="all">
-    <div class="form">
+    <div class="form-container">
       <el-form
         ref="studentInfo"
         :model="studentInfo"
         :rules="formRules"
-        label-width="80px"
+        label-width="90px"
+        class="student-form"
       >
         <el-form-item label="学生姓名" prop="name">
           <el-input
             v-model="studentInfo.name"
             placeholder="请输入学生姓名"
-            style="width: 150px"
+            class="form-input"
           ></el-input>
         </el-form-item>
         <el-form-item label="学生学号" prop="userId">
           <el-input
             v-model="studentInfo.userId"
             placeholder="请输入学生学号"
-            style="width: 200px"
+            class="form-input"
           ></el-input>
         </el-form-item>
         <el-form-item label="电话" prop="phone">
           <el-input
             v-model="studentInfo.phone"
             placeholder="请输入电话"
-            style="width: 250px"
+            class="form-input"
           ></el-input>
         </el-form-item>
         <el-form-item label="邮件" prop="email">
           <el-input
             v-model="studentInfo.email"
             placeholder="请输入邮件"
-            style="width: 250px"
+            class="form-input"
           ></el-input>
         </el-form-item>
       </el-form>
     </div>
-    <hr style="border-color: gray; width: 80%; opacity: 0.1" />
-    <div class="b-button">
-      <el-button @click="cancel">取消</el-button>
-      <el-button type="primary" @click="submitStudent(1)">保存</el-button>
-      <el-button type="warning" @click="submitStudent(2)"
-        >保存并继续添加</el-button
-      >
+    <div class="divider"></div>
+    <div class="button-group">
+      <el-button @click="cancel" class="action-button">取消</el-button>
+      <el-button type="primary" @click="submitStudent(1)" class="action-button">保存</el-button>
+      <el-button type="warning" @click="submitStudent(2)" class="action-button">
+        保存并继续添加
+      </el-button>
     </div>
   </div>
 </template>
@@ -177,14 +178,47 @@ export default {
 
 <style scoped>
 .all {
-  margin: 20px;
-  padding: 40px;
+  margin: 10px;
+  padding: 20px;
   background-color: #fff;
   border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
-.form {
-  padding-left: 150px;
+
+.form-container {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 10px;
 }
+
+.student-form {
+  width: 100%;
+}
+
+.form-input {
+  width: 100%;
+}
+
+.divider {
+  margin: 20px auto;
+  width: 90%;
+  height: 1px;
+  background-color: rgba(128, 128, 128, 0.1);
+}
+
+.button-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 10px;
+}
+
+.action-button {
+  width: 100%;
+}
+
+/* 头像上传相关样式保持不变 */
 .avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
@@ -192,9 +226,11 @@ export default {
   position: relative;
   overflow: hidden;
 }
+
 .avatar-uploader .el-upload:hover {
   border-color: #409eff;
 }
+
 .avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
@@ -204,13 +240,57 @@ export default {
   text-align: center;
   border: #8c939d 1px dotted;
 }
+
 .avatar {
   width: 178px;
   height: 178px;
   display: block;
 }
-.b-button {
-  margin-top: 30px;
-  margin-left: 300px;
+
+/* 响应式布局 */
+@media screen and (min-width: 768px) {
+  .all {
+    margin: 20px;
+    padding: 40px;
+  }
+
+  .form-container {
+    padding: 0 20px;
+  }
+
+  .button-group {
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+    padding: 0;
+  }
+
+  .action-button {
+    width: auto;
+    min-width: 120px;
+  }
+
+  /* 表单项在大屏幕上的样式 */
+  .form-input {
+    width: 250px;
+  }
+}
+
+/* Element UI 表单在移动端的优化 */
+@media screen and (max-width: 767px) {
+  .el-form-item__label {
+    float: none;
+    text-align: left;
+    padding: 0 0 8px;
+  }
+
+  .el-form-item {
+    margin-bottom: 20px;
+  }
+
+  .el-form--label-left .el-form-item__label {
+    text-align: left;
+  }
 }
 </style>
+

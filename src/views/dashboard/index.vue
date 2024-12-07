@@ -170,6 +170,19 @@ import { mapState } from 'vuex'
 
 export default {
   name: 'Dashboard',
+  mounted() {
+    // 处理移动端视口高度
+    const setViewportHeight = () => {
+      const vh = window.innerHeight * 0.01;
+      document.documentElement.style.setProperty('--vh', `${vh}px`);
+    };
+
+    setViewportHeight();
+    window.addEventListener('resize', setViewportHeight);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', setViewportHeight);
+  },
   computed: {
     ...mapState('user', ['auth', 'name']),
     welcomeMessage() {
@@ -296,6 +309,149 @@ export default {
 
   .module-icon {
     margin: 0 0 15px 0;
+  }
+}
+
+.dashboard-container {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100%;  /* 改变高度计算方式 */
+  position: relative; /* 确保定位正确 */
+}
+
+/* 添加全局样式 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden; /* 防止横向滚动 */
+}
+
+/* 确保主容器可以正确展开 */
+#app {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 优化移动端样式 */
+@media screen and (max-width: 768px) {
+  .dashboard-container {
+    padding: 10px;
+    height: auto;
+    min-height: calc(100vh - 64px); /* 移动端导航栏通常更小 */
+  }
+
+  .module-card {
+    margin-bottom: 15px;
+    pointer-events: auto !important; /* 确保可点击 */
+  }
+
+  /* 确保内容可以正常点击 */
+  .module-content {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+.dashboard-container {
+  padding: 20px;
+  background-color: #f5f7fa;
+  min-height: 100%;
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* 增加 iOS 滚动顺畅度 */
+}
+
+/* 重置基础样式 */
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  position: relative;
+  -webkit-text-size-adjust: 100%; /* 防止 iOS 文字大小自动调整 */
+}
+
+#app {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* 移动端特定样式 */
+@media screen and (max-width: 768px) {
+  .dashboard-container {
+    padding: 10px;
+    height: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: fixed;
+    top: 64px; /* 导航栏高度 */
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+
+  .welcome-section {
+    margin-bottom: 20px;
+  }
+
+  .welcome-card {
+    margin-bottom: 15px;
+  }
+
+  .modules-section {
+    padding-bottom: 20px; /* 确保底部有足够空间 */
+  }
+
+  .module-card {
+    margin-bottom: 15px;
+    transform: none !important; /* 禁用悬停效果 */
+    touch-action: manipulation; /* 优化触摸操作 */
+  }
+
+  .module-content {
+    padding: 15px;
+    touch-action: manipulation;
+  }
+
+  /* 优化触摸区域 */
+  .module-card,
+  .module-content,
+  .welcome-card {
+    cursor: pointer;
+    -webkit-tap-highlight-color: rgba(0,0,0,0); /* 移除点击高亮 */
+    user-select: none; /* 防止文本选择 */
+  }
+
+  /* 确保内容可以正常点击 */
+  .module-content {
+    position: relative;
+    z-index: 2;
+  }
+
+  /* 调整文字大小 */
+  .welcome-text h1 {
+    font-size: 18px;
+    line-height: 1.3;
+  }
+
+  .module-info h3 {
+    font-size: 16px;
+  }
+
+  .module-info p {
+    font-size: 13px;
+  }
+}
+
+/* 处理 iOS 安全区域 */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .dashboard-container {
+    padding-top: calc(20px + env(safe-area-inset-top));
+    padding-bottom: calc(20px + env(safe-area-inset-bottom));
   }
 }
 </style>

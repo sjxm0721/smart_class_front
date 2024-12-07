@@ -1,48 +1,52 @@
 <template>
-  <div class="all">
-    <div class="form">
-      <el-form
-        ref="schoolInfo"
-        :model="schoolInfo"
-        :rules="formRules"
-        label-width="80px"
-      >
-        <el-form-item label="学校名称" prop="schoolName">
-          <el-input
-            v-model="schoolInfo.schoolName"
-            placeholder="请输入学校名称"
-            style="width: 300px"
-          ></el-input>
-        </el-form-item>
-        <el-form-item label="学校标识" prop="pic">
-          <el-upload
-            class="avatar-uploader"
-            action="/admin/common/upload"
-            :show-file-list="false"
-            :on-success="handleAvatarSuccess"
-            :before-upload="beforeAvatarUpload"
-          >
-            <img v-if="schoolInfo.pic" :src="schoolInfo.pic" class="avatar" />
-            <i v-else class="el-icon-plus avatar-uploader-icon"></i>
-          </el-upload>
-        </el-form-item>
-        <el-form-item label="学校地址" prop="address">
-          <el-input
-            type="textarea"
-            placeholder="请输入学校地址"
-            v-model="schoolInfo.address"
-            style="width: 300px"
-          ></el-input>
-        </el-form-item>
-      </el-form>
-    </div>
-    <hr style="border-color: gray; width: 80%; opacity: 0.1" />
-    <div class="b-button">
-      <el-button @click="cancel">取消</el-button>
-      <el-button type="primary" @click="submitSchool(1)">保存</el-button>
-      <el-button type="warning" @click="submitSchool(2)"
-        >保存并继续添加</el-button
-      >
+  <div class="page-container">
+    <div class="form-wrapper">
+      <div class="form-content">
+        <el-form
+          ref="schoolInfo"
+          :model="schoolInfo"
+          :rules="formRules"
+          :label-width="isMobile ? '90px' : '80px'"
+        >
+          <el-form-item label="学校名称" prop="schoolName">
+            <el-input
+              v-model="schoolInfo.schoolName"
+              placeholder="请输入学校名称"
+              class="custom-input"
+            ></el-input>
+          </el-form-item>
+
+          <el-form-item label="学校标识" prop="pic">
+            <el-upload
+              class="avatar-uploader"
+              action="/admin/common/upload"
+              :show-file-list="false"
+              :on-success="handleAvatarSuccess"
+              :before-upload="beforeAvatarUpload"
+            >
+              <img v-if="schoolInfo.pic" :src="schoolInfo.pic" class="avatar" />
+              <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+            </el-upload>
+          </el-form-item>
+
+          <el-form-item label="学校地址" prop="address">
+            <el-input
+              type="textarea"
+              placeholder="请输入学校地址"
+              v-model="schoolInfo.address"
+              class="custom-input"
+            ></el-input>
+          </el-form-item>
+        </el-form>
+      </div>
+
+      <div class="divider"></div>
+
+      <div class="button-group">
+        <el-button @click="cancel">取消</el-button>
+        <el-button type="primary" @click="submitSchool(1)">保存</el-button>
+        <el-button type="warning" @click="submitSchool(2)">保存并继续添加</el-button>
+      </div>
     </div>
   </div>
 </template>
@@ -67,6 +71,7 @@ export default {
           { required: true, message: "请输入学校地址", trigger: "blur" },
         ],
       },
+      isMobile: false,
     };
   },
   created() {
@@ -78,12 +83,18 @@ export default {
         });
       });
     }
+    this.checkDevice();
+    window.addEventListener('resize', this.checkDevice);
+  },
+  beforeDestroy() {
+    window.removeEventListener('resize', this.checkDevice);
   },
   methods: {
+    checkDevice() {
+      this.isMobile = window.innerWidth <= 768;
+    },
     async getSchoolInfo(schoolId) {
-      const result = await this.$API.school.reqGetSchoolInfoBySchoolId(
-        schoolId
-      );
+      const result = await this.$API.school.reqGetSchoolInfoBySchoolId(schoolId);
       if (result.code == 200) {
         this.schoolInfo.schoolId = result.data["schoolId"];
         this.schoolInfo.schoolName = result.data["schoolName"];
@@ -111,6 +122,7 @@ export default {
       this.$router.back();
     },
     submitSchool(type) {
+      // 保持原有的提交逻辑不变
       this.$refs.schoolInfo.validate((valid) => {
         if (valid) {
           if (this.schoolInfo.schoolId == null) {
@@ -146,11 +158,9 @@ export default {
                   message: "修改成功",
                   type: "success",
                 });
-                if(type==1)
-                {
+                if(type==1) {
                   this.$router.push("/school");
-                }
-                else{
+                } else {
                   this.schoolInfo = {
                     schoolId: null,
                     schoolName: "",
@@ -176,41 +186,135 @@ export default {
 </script>
 
 <style scoped>
-.all {
-  margin: 20px;
-  padding: 40px;
+.page-container {
+  min-height: 100vh;
+  background-color: #f5f7fa;
+  padding: 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.form-wrapper {
   background-color: #fff;
   border-radius: 10px;
+  padding: 40px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
 }
-.form {
-  padding-left: 150px;
+
+.form-content {
+  max-width: 800px;
+  margin: 0 auto;
 }
+
+.custom-input {
+  max-width: 400px;
+  width: 100%;
+}
+
+.avatar-uploader {
+  text-align: center;
+}
+
 .avatar-uploader .el-upload {
   border: 1px dashed #d9d9d9;
   border-radius: 6px;
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  transition: all 0.3s;
 }
+
 .avatar-uploader .el-upload:hover {
   border-color: #409eff;
 }
+
 .avatar-uploader-icon {
   font-size: 28px;
   color: #8c939d;
-  width: 178px;
-  height: 178px;
-  line-height: 178px;
+  width: 150px;
+  height: 150px;
+  line-height: 150px;
   text-align: center;
   border: #8c939d 1px dotted;
 }
+
 .avatar {
-  width: 178px;
-  height: 178px;
+  width: 150px;
+  height: 150px;
   display: block;
+  object-fit: cover;
 }
-.b-button {
-  margin-top: 30px;
-  margin-left: 300px;
+
+.divider {
+  margin: 30px 0;
+  border: none;
+  border-top: 1px solid rgba(0,0,0,0.1);
+}
+
+.button-group {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-top: 20px;
+}
+
+/* 移动端适配 */
+@media screen and (max-width: 768px) {
+  .page-container {
+    padding: 10px;
+  }
+
+  .form-wrapper {
+    padding: 20px;
+  }
+
+  .custom-input {
+    max-width: 100%;
+  }
+
+  .avatar-uploader-icon {
+    width: 120px;
+    height: 120px;
+    line-height: 120px;
+  }
+
+  .avatar {
+    width: 120px;
+    height: 120px;
+  }
+
+  .button-group {
+    flex-direction: column;
+    padding: 0 20px;
+  }
+
+  .button-group .el-button {
+    width: 100%;
+    margin-bottom: 10px;
+  }
+
+  /* 调整表单项在移动端的间距 */
+  :deep(.el-form-item) {
+    margin-bottom: 20px;
+  }
+
+  :deep(.el-form-item__label) {
+    padding-right: 12px;
+    font-size: 14px;
+  }
+}
+
+/* 处理超小屏幕 */
+@media screen and (max-width: 320px) {
+  .form-wrapper {
+    padding: 15px;
+  }
+
+  .avatar-uploader-icon,
+  .avatar {
+    width: 100px;
+    height: 100px;
+    line-height: 100px;
+  }
 }
 </style>

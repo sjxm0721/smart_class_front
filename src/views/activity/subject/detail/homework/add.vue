@@ -5,38 +5,6 @@
       <el-form-item label="作业标题">
         <el-input v-model="form.title"></el-input>
       </el-form-item>
-      <el-form-item label="作业类型">
-        <el-radio-group v-model="form.type" @change="handleTypeChange">
-          <el-radio :label="0">面向班级</el-radio>
-          <el-radio :label="1">面向个人</el-radio>
-        </el-radio-group>
-      </el-form-item>
-      <el-form-item label="目标班级" v-if="form.type === 0">
-        <el-transfer
-          v-model="form.classIdList"
-          :data="classes"
-          :props="{
-            key: 'classId',
-            label: 'className'
-          }"
-          :titles="['待选班级', '已选班级']"
-          filterable
-          filter-placeholder="请输入班级名称"
-        ></el-transfer>
-      </el-form-item>
-      <el-form-item label="目标学生" v-if="form.type === 1">
-        <el-transfer
-          v-model="form.studentIdList"
-          :data="students"
-          :props="{
-            key: 'studentId',
-            label: 'studentName'
-          }"
-          :titles="['待选学生', '已选学生']"
-          filterable
-          filter-placeholder="请输入学生名称"
-        ></el-transfer>
-      </el-form-item>
       <el-form-item label="可见时间">
         <el-date-picker
           v-model="form.sightedTime"
@@ -183,7 +151,8 @@ export default {
       const formData = {
         ...this.form,
         sightedTime: this.formatDate(this.form.sightedTime),
-        completeTime: this.formatDate(this.form.completeTime)
+        completeTime: this.formatDate(this.form.completeTime),
+        subjectId:this.$route.params.subjectId
       }
 
       reqAddHomework(formData).then(res => {

@@ -1,10 +1,21 @@
 <template>
   <div class="subject-detail-container">
     <div class="subject-detail">
+      <!-- Mobile menu button -->
+      <div class="mobile-menu-button" v-show="isMobile">
+        <el-button type="text" @click="toggleMobileMenu">
+          <i :class="['el-icon-s-unfold', { 'is-active': showMobileMenu }]"></i>
+          菜单
+        </el-button>
+      </div>
+
       <el-row>
-        <el-col :span="4">
-          <div class="subject-menu-wrap">
-            <!-- 添加返回首页按钮 -->
+        <!-- Mobile menu overlay -->
+        <div class="mobile-menu-overlay" v-show="showMobileMenu && isMobile" @click="toggleMobileMenu"></div>
+
+        <!-- Side menu -->
+        <el-col :span="isMobile ? 24 : 4" class="menu-col" :class="{ 'mobile-menu': isMobile }">
+          <div class="subject-menu-wrap" :class="{ 'show': showMobileMenu || !isMobile }">
             <div class="home-button-wrap">
               <el-button
                 type="primary"
@@ -18,7 +29,7 @@
             <el-menu
               :default-active="currentTab"
               class="subject-menu"
-              @select="switchTab">
+              @select="handleMenuSelect">
               <el-menu-item index="intro">课程简介</el-menu-item>
               <el-menu-item index="chapter">章节目录</el-menu-item>
               <el-menu-item index="homework">课程作业</el-menu-item>
@@ -26,7 +37,9 @@
             </el-menu>
           </div>
         </el-col>
-        <el-col :span="20">
+
+        <!-- Content area -->
+        <el-col :span="isMobile ? 24 : 20">
           <div class="subject-content-wrap">
             <div class="subject-content">
               <subject-intro v-if="currentTab === 'intro'" :subject="subject"/>
@@ -58,14 +71,36 @@ export default {
   data() {
     return {
       subject: {},
-      currentTab: 'intro'
+      currentTab: 'intro',
+      isMobile: false,
+      showMobileMenu: false
     }
   },
   created() {
     const subjectId = this.$route.params.subjectId
     this.fetchSubjectDetail(subjectId)
+    this.checkDeviceWidth()
+    window.addEventListener('resize', this.checkDeviceWidth)
+  },
+  destroyed() {
+    window.removeEventListener('resize', this.checkDeviceWidth)
   },
   methods: {
+    checkDeviceWidth() {
+      this.isMobile = window.innerWidth <= 768
+      if (!this.isMobile) {
+        this.showMobileMenu = false
+      }
+    },
+    toggleMobileMenu() {
+      this.showMobileMenu = !this.showMobileMenu
+    },
+    handleMenuSelect(tab) {
+      this.currentTab = tab
+      if (this.isMobile) {
+        this.showMobileMenu = false
+      }
+    },
     fetchSubjectDetail(id) {
       // TODO: 发送请求获取课程详情数据
       // 暂时使用模拟数据
@@ -129,7 +164,8 @@ export default {
 }
 
 .subject-detail {
-  width: 1200px;
+  width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   background-color: #fff;
   border-radius: 4px;
@@ -137,6 +173,34 @@ export default {
   min-height: calc(100vh - 120px);
 }
 
+/* Mobile menu button */
+.mobile-menu-button {
+  display: none;
+  padding: 10px 20px;
+  border-bottom: 1px solid #e4e7ed;
+}
+
+.mobile-menu-button .el-button {
+  font-size: 16px;
+}
+
+.mobile-menu-button i {
+  margin-right: 5px;
+  font-size: 20px;
+}
+
+/* Mobile menu overlay */
+.mobile-menu-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  z-index: 2000;
+}
+
+/* Menu styles */
 .subject-menu-wrap {
   padding: 20px 0;
   border-right: 1px solid #e4e7ed;
@@ -144,13 +208,9 @@ export default {
 
 .subject-menu {
   border-right: none;
+  margin-top: 10px;
 }
 
-.subject-content-wrap {
-  padding: 20px;
-}
-
-/* 新增样式 */
 .home-button-wrap {
   padding: 0 20px 20px 20px;
   border-bottom: 1px solid #e4e7ed;
@@ -168,11 +228,6 @@ export default {
   margin-right: 5px;
 }
 
-/* 优化菜单样式 */
-.subject-menu {
-  margin-top: 10px;
-}
-
 .subject-menu .el-menu-item {
   font-size: 14px;
   height: 45px;
@@ -186,5 +241,46 @@ export default {
 .subject-menu .el-menu-item.is-active {
   color: #409EFF;
   background-color: #ecf5ff;
+}
+
+/* Content area */
+.subject-content-wrap {
+  padding: 20px;
+}
+
+/* Mobile styles */
+@media screen and (max-width: 768px) {
+  .subject-detail-container {
+    padding: 0;
+  }
+
+  .subject-detail {
+    border-radius: 0;
+    box-shadow: none;
+  }
+
+  .mobile-menu-button {
+    display: block;
+  }
+
+  .menu-col.mobile-menu .subject-menu-wrap {
+    position: fixed;
+    top: 0;
+    left: -80%;
+    width: 80%;
+    height: 100vh;
+    background-color: #fff;
+    z-index: 2001;
+    transition: left 0.3s ease;
+    overflow-y: auto;
+  }
+
+  .menu-col.mobile-menu .subject-menu-wrap.show {
+    left: 0;
+  }
+
+  .subject-content-wrap {
+    padding: 15px;
+  }
 }
 </style>

@@ -12,11 +12,37 @@
           <div class="chapter-title">
             <div class="title-content">{{ chapter.chapterNum }} {{ chapter.title }}</div>
             <div class="chapter-actions" v-if="auth === 2">
-              <el-button type="text" icon="el-icon-edit" @click="handleEdit(chapter)">编辑</el-button>
-              <el-button type="text" icon="el-icon-delete" @click="handleDelete(chapter, index)">删除</el-button>
+              <el-button type="text" icon="el-icon-edit" @click="handleEdit(chapter)">
+                <span class="action-text">编辑</span>
+              </el-button>
+              <el-button type="text" icon="el-icon-delete" @click="handleDelete(chapter, index)">
+                <span class="action-text">删除</span>
+              </el-button>
             </div>
           </div>
-          <el-table :data="chapter.childrenList" @row-click="handleLessonClick">
+
+          <!-- 移动端课时列表 -->
+          <div class="mobile-lesson-list" v-if="isMobile">
+            <div v-for="(lesson, lessonIndex) in chapter.childrenList"
+                 :key="lessonIndex"
+                 class="mobile-lesson-item"
+                 @click="handleLessonClick(lesson)">
+              <div class="lesson-info">
+                <span class="lesson-title">{{ lesson.chapterNum }} {{ lesson.title }}</span>
+              </div>
+              <div class="lesson-actions" v-if="auth === 2">
+                <el-button type="text" size="mini" @click.stop="handleEditLesson(lesson)">
+                  <i class="el-icon-edit"></i>
+                </el-button>
+                <el-button type="text" size="mini" @click.stop="handleDeleteLesson(lesson, chapter, lessonIndex)">
+                  <i class="el-icon-delete"></i>
+                </el-button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 桌面端课时表格 -->
+          <el-table v-else :data="chapter.childrenList" @row-click="handleLessonClick">
             <el-table-column prop="title" label="课时">
               <template slot-scope="scope">
                 <span>{{ scope.row.chapterNum }} {{ scope.row.title }}</span>
@@ -33,18 +59,36 @@
       </el-timeline-item>
     </el-timeline>
 
-    <el-dialog :title="dialogTitle" :visible.sync="dialogVisible" width="600px" @close="handleDialogClose">
+    <!-- 添加/编辑章节对话框 -->
+    <el-dialog
+      :title="dialogTitle"
+      :visible.sync="dialogVisible"
+      :width="isMobile ? '90%' : '600px'"
+      @close="handleDialogClose"
+      class="chapter-dialog">
       <el-form :model="chapterForm" :rules="rules" ref="chapterForm" label-width="100px">
         <el-form-item label="章节标题" prop="title">
           <el-input v-model="chapterForm.title" placeholder="请输入章节标题"></el-input>
         </el-form-item>
-        <el-form-item v-for="(lesson, index) in chapterForm.childrenList" :key="index" :label="'课时' + (index+1)">
-          <el-input v-model="lesson.title" :placeholder="'请输入课时' + (index+1) + '标题'"></el-input>
-          <el-input v-model="lesson.url" placeholder="请输入视频URL"></el-input>
-          <el-button @click.prevent="removeLessonField(lesson, index)">删除</el-button>
+        <el-form-item v-for="(lesson, index) in chapterForm.childrenList"
+                      :key="index"
+                      :label="'课时' + (index+1)"
+                      class="lesson-form-item">
+          <div class="lesson-input-group">
+            <el-input v-model="lesson.title"
+                      :placeholder="'请输入课时' + (index+1) + '标题'"
+                      class="lesson-input"></el-input>
+            <el-input v-model="lesson.url"
+                      placeholder="请输入视频URL"
+                      class="lesson-input"></el-input>
+            <el-button @click.prevent="removeLessonField(lesson, index)"
+                       type="danger"
+                       size="mini"
+                       class="remove-lesson-btn">删除</el-button>
+          </div>
         </el-form-item>
         <el-form-item>
-          <el-button @click="addLessonField">新增课时</el-button>
+          <el-button @click="addLessonField" type="primary" plain>新增课时</el-button>
         </el-form-item>
       </el-form>
       <span slot="footer" class="dialog-footer">
@@ -53,7 +97,12 @@
       </span>
     </el-dialog>
 
-    <el-dialog title="编辑课时" :visible.sync="lessonDialogVisible" width="500px">
+    <!-- 编辑课时对话框 -->
+    <el-dialog
+      title="编辑课时"
+      :visible.sync="lessonDialogVisible"
+      :width="isMobile ? '90%' : '500px'"
+      class="lesson-dialog">
       <el-form :model="lessonForm" :rules="lessonRules" ref="lessonForm" label-width="100px">
         <el-form-item label="课时标题" prop="title">
           <el-input v-model="lessonForm.title"></el-input>
@@ -69,6 +118,7 @@
     </el-dialog>
   </div>
 </template>
+
 
 <script>
 import {
@@ -87,6 +137,7 @@ export default {
       chapterList: null,
       dialogVisible: false,
       dialogType: 'add',
+      isMobile: false,
       chapterForm: {
         subjectId: null,
         id: null,
@@ -127,6 +178,11 @@ export default {
   },
   mounted() {
     this.fetchChapterList()
+    this.checkDeviceWidth()
+    window.addEventListener('resize', this.checkDeviceWidth)
+  },
+  destroyed() {
+    window.removeEventListener('resize', this.checkDeviceWidth)
   },
   methods: {
     async fetchChapterList() {
@@ -289,6 +345,9 @@ export default {
         }
       })
     },
+    checkDeviceWidth() {
+      this.isMobile = window.innerWidth <= 768
+    },
     async handleLessonSubmit() {
       if (this.auth !== 2) {
         this.$message.warning('您没有权限进行此操作')
@@ -331,6 +390,8 @@ export default {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 15px;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 .title-content {
@@ -343,6 +404,95 @@ export default {
   gap: 10px;
 }
 
+/* 移动端样式 */
+@media screen and (max-width: 768px) {
+  .subject-chapter {
+    padding: 10px;
+  }
+
+  .chapter-header {
+    margin-bottom: 15px;
+  }
+
+  .title-content {
+    font-size: 16px;
+  }
+
+  .action-text {
+    display: none;
+  }
+
+  .mobile-lesson-list {
+    border: 1px solid #EBEEF5;
+    border-radius: 4px;
+  }
+
+  .mobile-lesson-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    border-bottom: 1px solid #EBEEF5;
+    cursor: pointer;
+  }
+
+  .mobile-lesson-item:last-child {
+    border-bottom: none;
+  }
+
+  .lesson-info {
+    flex: 1;
+    margin-right: 10px;
+  }
+
+  .lesson-title {
+    font-size: 14px;
+  }
+
+  .lesson-actions {
+    display: flex;
+    gap: 5px;
+  }
+
+  /* 表单样式调整 */
+  .lesson-form-item {
+    margin-bottom: 20px;
+  }
+
+  .lesson-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .lesson-input {
+    width: 100%;
+    margin: 0;
+  }
+
+  .remove-lesson-btn {
+    align-self: flex-end;
+  }
+
+  /* Dialog样式调整 */
+  .chapter-dialog .el-dialog,
+  .lesson-dialog .el-dialog {
+    width: 90% !important;
+    margin-top: 20vh !important;
+  }
+
+  .el-dialog__body {
+    padding: 15px !important;
+  }
+
+  .el-dialog .el-input {
+    width: 100%;
+    margin-right: 0;
+    margin-bottom: 10px;
+  }
+}
+
+/* 桌面端样式保持不变 */
 .el-dialog .el-input {
   width: 80%;
   margin-right: 10px;

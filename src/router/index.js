@@ -143,7 +143,7 @@ export const constantRoutes = [
   {
     path:"/subject-detail/:subjectId",
     component:()=>import("@/views/activity/subject/detail"),
-    meta:{auth:['2'],title:'课程详情'},
+    meta:{auth:['0','2'],title:'课程详情'},
     hidden: true,
     children:[
       {
@@ -321,6 +321,16 @@ router.beforeEach((to,from,next)=>{
   }
 
   else if(to.name==='MyClass'){
+    if(userAuth==0){
+      Message.error('没有权限');
+      next("/dashboard");
+    }
+    else{
+      next();
+    }
+  }
+
+  else if(to.name==='Student' || to.name==='StudentAdd'){
     if(userAuth==0){
       Message.error('没有权限');
       next("/dashboard");

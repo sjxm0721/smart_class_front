@@ -15,19 +15,19 @@
         </span>
       </div>
       <el-row :gutter="20">
-        <el-col :span="8">
+        <el-col :xs="24" :sm="8">
           <div class="info-item">
             <span class="label">作业标题：</span>
             <span class="value">{{ submitInfo.homeworkTitle }}</span>
           </div>
         </el-col>
-        <el-col :span="8">
+        <el-col :xs="24" :sm="8">
           <div class="info-item">
             <span class="label">提交学生：</span>
             <span class="value">{{ submitInfo.studentName }}</span>
           </div>
         </el-col>
-        <el-col :span="8">
+        <el-col :xs="24" :sm="8">
           <div class="info-item">
             <span class="label">提交时间：</span>
             <span class="value">{{ formatTime(submitInfo.submitTime) }}</span>
@@ -35,13 +35,13 @@
         </el-col>
       </el-row>
       <el-row :gutter="20" class="mt-20">
-        <el-col :span="8">
+        <el-col :xs="24" :sm="8">
           <div class="info-item">
             <span class="label">所属课程：</span>
             <span class="value">{{ submitInfo.subjectName }}</span>
           </div>
         </el-col>
-        <el-col :span="8">
+        <el-col :xs="24" :sm="8">
           <div class="info-item">
             <span class="label">批改状态：</span>
             <el-tag :type="submitInfo.isCorrected ? 'success' : 'warning'" size="small">
@@ -49,7 +49,7 @@
             </el-tag>
           </div>
         </el-col>
-        <el-col :span="8">
+        <el-col :xs="24" :sm="8">
           <div class="info-item" v-if="submitInfo.isCorrected">
             <span class="label">最终得分：</span>
             <span class="value score">{{ submitInfo.score }} 分</span>
@@ -61,11 +61,10 @@
     <!-- 作业内容卡片 -->
     <el-card class="detail-card content-card">
       <div slot="header" class="card-header">
-    <span class="header-title">
-      <i class="el-icon-document"></i> 作业内容
-    </span>
+        <span class="header-title">
+          <i class="el-icon-document"></i> 作业内容
+        </span>
       </div>
-      <!-- 将 wangEditor 替换为简单的内容展示区域 -->
       <div class="content-viewer" v-html="submitInfo.content"></div>
     </el-card>
 
@@ -78,11 +77,19 @@
       </div>
       <div class="resource-list">
         <div v-for="(resource, index) in parsedResources" :key="index" class="resource-item">
-          <span class="resource-icon" :class="getResourceIconClass(resource.type)"></span>
-          <span class="resource-name">{{ resource.name }}</span>
+          <div class="resource-info">
+            <span class="resource-icon" :class="getResourceIconClass(resource.type)"></span>
+            <span class="resource-name">{{ resource.name }}</span>
+          </div>
           <div class="resource-actions">
-            <el-button type="text" @click="previewResource(resource)">预览</el-button>
-            <el-button type="text" @click="downloadResource(resource)">下载</el-button>
+            <el-button type="text" @click="previewResource(resource)" size="mini">
+              <i class="el-icon-view"></i>
+              <span class="action-text">预览</span>
+            </el-button>
+            <el-button type="text" @click="downloadResource(resource)" size="mini">
+              <i class="el-icon-download"></i>
+              <span class="action-text">下载</span>
+            </el-button>
           </div>
         </div>
       </div>
@@ -108,8 +115,7 @@
         </div>
 
         <div class="comment-form">
-          <el-form :model="commentForm" ref="commentForm" label-width="80px">
-            <!-- 教师评价区域中的评分部分修改为 -->
+          <el-form :model="commentForm" ref="commentForm" :label-width="isMobile ? '60px' : '80px'">
             <el-form-item label="评分">
               <div class="score-input-group">
                 <el-input-number
@@ -150,8 +156,8 @@
                     </el-button>
                   </el-popover>
                   <span class="current-level" :class="scoreLevelClass">
-        {{ scoreLevel }}
-      </span>
+                    {{ scoreLevel }}
+                  </span>
                 </div>
               </div>
             </el-form-item>
@@ -188,24 +194,6 @@
         <el-empty v-else description="暂无评价"></el-empty>
       </template>
     </el-card>
-
-    <!-- 资源预览对话框 -->
-    <el-dialog
-      :visible.sync="previewDialogVisible"
-      width="80%"
-      :fullscreen="isFullscreen"
-      :title="currentResource ? currentResource.name : '资源预览'"
-      class="preview-dialog"
-      :modal-append-to-body="true"
-      :append-to-body="true"
-      custom-class="resource-preview-dialog"
-    >
-      <ResourcePreview
-        v-if="currentResource"
-        :resource="currentResource"
-        @close="closePreview"
-      />
-    </el-dialog>
   </div>
 </template>
 
@@ -232,6 +220,7 @@ export default {
       submitting: false,
       previewDialogVisible: false,
       isFullscreen: false,
+      isMobile: false,
       currentResource: null,
       parsedResources: []
     }
@@ -259,13 +248,20 @@ export default {
   },
   mounted() {
     this.fetchSubmitDetail()
+    this.checkMobile()
+    window.addEventListener('resize', this.checkMobile)
+    this.fetchSubmitDetail()
   },
   beforeDestroy() {
     // if (this.editor) {
     //   this.editor.destroy()
     // }
+    window.removeEventListener('resize', this.checkMobile)
   },
   methods: {
+    checkMobile() {
+      this.isMobile = window.innerWidth <= 768
+    },
     async fetchSubmitDetail() {
       try {
         const submitId = this.$route.params.submitId
@@ -447,6 +443,65 @@ export default {
   padding: 20px;
 }
 
+/* 移动端适配样式 */
+@media screen and (max-width: 768px) {
+  .submit-detail {
+    padding: 10px;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .back-button {
+    margin-bottom: 10px;
+  }
+
+  .page-title {
+    font-size: 20px;
+  }
+
+  .info-item {
+    margin-bottom: 15px;
+  }
+
+  .score-input-group {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+
+  .score-tip {
+    margin-top: 10px;
+  }
+
+  .resource-item {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .resource-info {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+
+  .resource-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .comment-form {
+    max-width: 100%;
+  }
+
+  .el-form-item {
+    margin-bottom: 20px;
+  }
+}
+
+/* 保持原有的基础样式 */
 .page-header {
   display: flex;
   align-items: center;
@@ -672,5 +727,46 @@ export default {
 
 :deep(.v-modal) {
   z-index: 2999 !important;
+}
+
+.resource-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.resource-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.resource-name {
+  word-break: break-all;
+}
+
+.resource-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.action-text {
+  margin-left: 4px;
+}
+
+.score-input-group {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.score-tip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 </style>

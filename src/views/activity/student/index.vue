@@ -1,51 +1,56 @@
 <template>
   <div class="all">
     <div class="body1">
-      <div class="body1-left">
-        <span style="margin-left: 20px">学校名称：</span>
-        <el-select
-          v-model="selectedSchoolId"
-          placeholder="请选择"
-          style="width: 200px"
-          :disabled="isDisabled1"
-          @change="removeClassLS"
-        >
-          <el-option
-            v-for="item in schoolArray"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+      <div class="form-group">
+        <div class="form-item">
+          <label>学校名称：</label>
+          <el-select
+            v-model="selectedSchoolId"
+            placeholder="请选择"
+            class="full-width-select"
+            :disabled="isDisabled1"
+            @change="removeClassLS"
           >
-            <span style="float: left">{{ item.label }}</span>
-          </el-option>
-        </el-select>
+            <el-option
+              v-for="item in schoolArray"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+              <span style="float: left">{{ item.label }}</span>
+            </el-option>
+          </el-select>
+        </div>
 
-        <span style="margin-left: 20px">班级名称：</span>
-        <el-select
-          v-model="selectedClassId"
-          placeholder="请选择"
-          style="width: 200px"
-          :disabled="isDisabled2"
-        >
-          <el-option
-            v-for="item in classArray"
-            :key="item.value"
-            :label="item.label"
-            :value="item.value"
+        <div class="form-item">
+          <label>班级名称：</label>
+          <el-select
+            v-model="selectedClassId"
+            placeholder="请选择"
+            class="full-width-select"
+            :disabled="isDisabled2"
           >
-            <span style="float: left">{{ item.label }}</span>
-          </el-option>
-        </el-select>
+            <el-option
+              v-for="item in classArray"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+            >
+              <span style="float: left">{{ item.label }}</span>
+            </el-option>
+          </el-select>
+        </div>
       </div>
     </div>
+
     <div class="body2" v-show="selectedClassId != null">
-      <div class="addStudentBtn">
-        <div class="btn-on-bottom">
+      <div class="search-section">
+        <div class="search-inputs">
           <el-input
             placeholder="请输入姓名"
             prefix-icon="el-icon-search"
             size="small"
-            style="width: 150px"
+            class="search-input"
             @change="getStudentInfoList"
             v-model="studentName"
           >
@@ -53,33 +58,27 @@
           <el-input
             placeholder="请输入学号"
             prefix-icon="el-icon-search"
-            style="width: 150px; margin-left: 10px"
+            class="search-input"
             size="small"
             @change="getStudentInfoList"
             v-model="userId"
           >
           </el-input>
         </div>
-        <div class="btn-on-top">
+
+        <div class="action-buttons">
           <el-popover placement="left" width="150" trigger="click">
             <el-table :data="deviceInfoList">
-              <el-table-column
-                width="150"
-                property="deviceName"
-                label="设备名"
-              ></el-table-column>
+              <el-table-column width="150" property="deviceName" label="设备名"></el-table-column>
             </el-table>
-            <el-button type="success" size="small" slot="reference"
-            >查看设备<i class="el-icon-camera el-icon--right"></i
-            ></el-button>
+            <el-button type="success" size="small" slot="reference" class="action-btn">
+              查看设备<i class="el-icon-camera el-icon--right"></i>
+            </el-button>
           </el-popover>
-          <el-button
-            type="primary"
-            @click="addStudent"
-            size="small"
-            style="margin-left: 10px"
-          >添加学生<i class="el-icon-plus el-icon--right"></i
-          ></el-button>
+
+          <el-button type="primary" @click="addStudent" size="small" class="action-btn">
+            添加学生<i class="el-icon-plus el-icon--right"></i>
+          </el-button>
 
           <el-upload
             class="upload-btn"
@@ -89,69 +88,95 @@
             :http-request="handleUpload"
             accept=".xlsx,.xls"
           >
-            <el-button type="warning" size="small" style="margin-left: 10px">
+            <el-button type="warning" size="small" class="action-btn">
               批量导入<i class="el-icon-upload el-icon--right"></i>
             </el-button>
           </el-upload>
 
-          <el-button type="info" size="small" style="margin-left: 10px" @click="downloadTemplate">
+          <el-button type="info" size="small" class="action-btn" @click="downloadTemplate">
             下载模板<i class="el-icon-download el-icon--right"></i>
           </el-button>
         </div>
       </div>
-      <div class="studentInf">
-        <el-table
-          :data="studentInfoList"
-          style="width: 100%"
-          max-height="500"
-          height="500"
-          ref="studentInfoList"
-          @selection-change="handleSelectionChange"
-        >
-          <el-table-column type="selection" width="55"> </el-table-column>
-          <el-table-column fixed prop="name" label="姓名" width="120">
-          </el-table-column>
-          <el-table-column prop="userId" label="学号" width="120">
-          </el-table-column>
-          <el-table-column prop="schoolName" label="学校" width="120">
-          </el-table-column>
-          <el-table-column prop="className" label="班级" width="120">
-          </el-table-column>
-          <el-table-column prop="phone" label="电话" width="180">
-          </el-table-column>
-          <el-table-column prop="email" label="邮箱" width="180">
-          </el-table-column>
-          <el-table-column fixed="right" label="操作" width="120">
-            <template slot-scope="{ row, $index }">
+
+      <!-- 替换表格为卡片列表 -->
+      <div class="student-list">
+        <!-- 多选控制条 -->
+        <div class="selection-bar" v-if="selectMode">
+          <el-checkbox
+            :value="isAllSelected"
+            @change="toggleAllSelection"
+          >全选</el-checkbox>
+          <div class="selection-count" v-if="selectItems.length > 0">
+            已选择 {{ selectItems.length }} 项
+          </div>
+        </div>
+
+        <div class="student-cards">
+          <div
+            v-for="student in studentInfoList"
+            :key="student.accountId"
+            class="student-card"
+            :class="{ 'selected': isSelected(student) }"
+            @click="selectMode && toggleSelection(student)"
+          >
+            <!-- 选择框 -->
+            <div class="card-checkbox" v-if="selectMode">
+              <el-checkbox
+                :value="isSelected(student)"
+                @click.stop
+                @change="(val) => toggleSelection(student)"
+              ></el-checkbox>
+            </div>
+
+            <!-- 卡片内容部分 -->
+            <div
+              class="card-content"
+              :class="{ 'with-checkbox': selectMode }"
+            >
+              <div class="student-main-info">
+                <span class="student-name">{{ student.name }}</span>
+                <span class="student-id">学号：{{ student.userId }}</span>
+              </div>
+              <div class="student-detail">
+                <div class="info-item">
+                  <i class="el-icon-school"></i>
+                  <span>{{ student.schoolName }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="el-icon-office-building"></i>
+                  <span>{{ student.className }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="el-icon-phone"></i>
+                  <span>{{ student.phone }}</span>
+                </div>
+                <div class="info-item">
+                  <i class="el-icon-message"></i>
+                  <span>{{ student.email }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 操作按钮 -->
+            <div class="card-actions" v-if="!selectMode">
               <el-button
-                @click.native.prevent="editStudent(row)"
                 type="text"
-                size="small"
-                style="color: orange"
-              >
-                修改
-              </el-button>
+                @click.stop="editStudent(student)"
+                class="edit-btn"
+              >修改</el-button>
               <el-popconfirm
                 title="确定删除吗？"
-                @onConfirm="deleteStudent(row)"
+                @onConfirm="deleteStudent(student)"
               >
                 <el-button
                   type="text"
-                  size="small"
-                  style="color: red; margin-left: 20px"
                   slot="reference"
-                >
-                  删除
-                </el-button>
+                  class="delete-btn"
+                >删除</el-button>
               </el-popconfirm>
-            </template>
-          </el-table-column>
-        </el-table>
-        <div style="margin-top: 20px">
-          <el-button @click="toggleSelected()">取消选择</el-button>
-          <el-button @click="deleteSelected" type="danger"
-            >删除选择项</el-button
-          >
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -166,6 +191,10 @@ import { reqGetAllClassList } from '@/api/activity/myClass'
 export default {
   name: "Student",
   computed: {
+    isAllSelected() {
+      return this.studentInfoList.length > 0 &&
+        this.selectItems.length === this.studentInfoList.length;
+    },
     isDisabled1() {
       const userAuth = crypto.Decrypt(localStorage.getItem("user_auth"));
       return userAuth !== "1";
@@ -192,16 +221,6 @@ export default {
           value: myClass.classId.toString(),
           label: myClass.className,
         }));
-    },
-    // 当前选中的学校名称
-    selectedSchoolName() {
-      const school = this.schoolInfoList.find(s => s.schoolId === this.selectedSchoolId);
-      return school ? school.schoolName : '';
-    },
-    // 当前选中的班级名称
-    selectedClassName() {
-      const classInfo = this.classInfoList.find(c => c.classId === this.selectedClassId);
-      return classInfo ? classInfo.className : '';
     }
   },
   data() {
@@ -215,6 +234,7 @@ export default {
       deviceInfoList: [],
       selectItems: [],
       uploadLoading: false,
+      selectedMode:false
     };
   },
   async mounted() {
@@ -275,6 +295,19 @@ export default {
     }
   },
   methods: {
+    toggleSelection(student) {
+      this.$refs.studentInfoList.toggleRowSelection(student);
+    },
+    toggleAllSelection(val) {
+      if (val) {
+        this.$refs.studentInfoList.toggleAll(true);
+      } else {
+        this.$refs.studentInfoList.clearSelection();
+      }
+    },
+    isSelected(student) {
+      return this.selectItems.some(item => item.accountId === student.accountId);
+    },
     async getDeviceInfoListByClassId(classId) {
       let result = await this.$API.device.reqGetDeviceInfoListByClassId(
         classId
@@ -323,50 +356,6 @@ export default {
             message: err,
           });
         });
-    },
-    toggleSelected(rows) {
-      if (rows) {
-        rows.forEach((row) => {
-          this.$refs.studentInfoList.toggleRowSelection(row);
-        });
-      } else {
-        this.$refs.studentInfoList.clearSelection();
-      }
-    },
-    handleSelectionChange(selectItems) {
-      this.selectItems = selectItems;
-    },
-    deleteSelected() {
-      if (this.selectItems.length == 0) {
-        this.$message({
-          type: "error",
-          message: "选择项不能为空",
-        });
-      } else {
-        let ids = [];
-        ids = this.selectItems.map((item) => item.accountId);
-        let newIds = ids.join(",");
-        this.$store
-          .dispatch("student/deleteStudent", newIds)
-          .then(() => {
-            this.$message({
-              type: "success",
-              message: "删除成功",
-            });
-            this.getStudentInfoList();
-            this.getClassInfoById(this.selectedClassId);
-            this.getDeviceInfoListByClassId(this.selectedClassId);
-          })
-          .catch((err) => {
-            this.$message({
-              type: "error",
-              message: err,
-            });
-          });
-      }
-    },
-    toResult(){
-      this.$router.push("/result");
     },
 
     getStudentInfoList() {
@@ -479,71 +468,143 @@ export default {
 </script>
 
 <style>
-.body1 {
-  margin: 20px;
-  padding: 20px;
+/* 基础样式重置 */
+.all {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 主体区域样式 */
+.body1, .body2 {
+  margin: 10px;
+  padding: 15px;
   background-color: #fff;
-  border-radius: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.body1::before,
-.body1::after{
-  content:'';
-  display: table;
-}
-
-.body1::after{
-  clear:both;
-}
-
-.body1-left{
-  float: left;
-}
-
-.body1-right{
-  float: right;
-}
-
-.body2 {
-  margin: 20px;
-  padding: 20px;
-  background-color: #fff;
-  border-radius: 10px;
-}
-
-.body2::before,
-.body2::after {
-  content: "";
-  display: table;
-}
-
-.body2::after {
-  clear: both;
-}
-
-.classInc {
-  float: left;
-  width: 60%;
-}
-
-.addStudentBtn {
+/* 表单组样式 */
+.form-group {
   display: flex;
-  //flex-direction: column;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: 15px;
 }
 
-.btn-on-top {
+.form-item {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  gap: 8px;
 }
 
-.btn-on-bottom {
+.form-item label {
+  font-weight: 500;
 }
 
-.studentInf {
-  margin-top: 30px;
+/* 下拉选择器全宽度 */
+.full-width-select {
+  width: 100%;
 }
 
+/* 搜索区域样式 */
+.search-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.search-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.search-input {
+  width: 100%;
+}
+
+/* 操作按钮组样式 */
+.action-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.action-btn {
+  flex: 1;
+  min-width: 120px;
+  margin: 0 !important;
+}
+
+/* 表格操作按钮样式 */
+.operation-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: space-around;
+}
+
+/* 表格底部按钮样式 */
+.table-footer {
+  margin-top: 20px;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+/* 响应式布局 */
+@media screen and (min-width: 768px) {
+  .form-group {
+    flex-direction: row;
+    gap: 20px;
+  }
+
+  .form-item {
+    flex: 1;
+  }
+
+  .search-section {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .search-inputs {
+    flex-direction: row;
+    width: auto;
+  }
+
+  .search-input {
+    width: 200px;
+  }
+
+  .action-buttons {
+    flex-wrap: nowrap;
+  }
+
+  .action-btn {
+    flex: none;
+  }
+}
+
+/* 表格响应式处理 */
+@media screen and (max-width: 768px) {
+  .el-table {
+    width: 100%;
+    overflow-x: auto;
+  }
+
+  .el-table__body {
+    width: 100%;
+  }
+
+  /* 调整表格内容在小屏幕上的显示 */
+  .el-table .cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+/* 上传按钮样式保持不变 */
 .upload-btn {
   display: inline-block;
 }
@@ -552,15 +613,239 @@ export default {
   display: inline-block;
 }
 
-/* 为了保持按钮组的对齐 */
-.btn-on-top {
+.table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch; /* 为iOS添加弹性滚动 */
+}
+
+/* 表格响应式处理 */
+@media screen and (max-width: 768px) {
+  .table-wrapper {
+    margin: 0 -15px; /* 抵消父容器的padding */
+    padding: 0 15px;
+    width: calc(100% + 30px);
+  }
+
+  .el-table {
+    width: 990px !important; /* 设置一个固定的最小宽度 */
+    table-layout: fixed;
+  }
+
+  /* 固定列样式优化 */
+  .el-table__fixed,
+  .el-table__fixed-right {
+    height: 100% !important;
+    box-shadow: none;
+  }
+
+  /* 调整表格内容在小屏幕上的显示 */
+  .el-table .cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+
+  /* 优化固定列的显示 */
+  .el-table__fixed-right {
+    right: 0;
+    box-shadow: -2px 0 8px rgba(0,0,0,.1);
+  }
+
+  .el-table__fixed {
+    left: 0;
+    box-shadow: 2px 0 8px rgba(0,0,0,.1);
+  }
+
+  /* 操作按钮组样式优化 */
+  .operation-buttons {
+    display: flex;
+    justify-content: space-around;
+    gap: 5px;
+    white-space: nowrap;
+  }
+
+  /* 表格底部按钮组样式优化 */
+  .table-footer {
+    margin: 20px 0;
+    padding: 0 15px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .table-footer .el-button {
+    flex: 1;
+    min-width: 120px;
+  }
+}
+
+/* 处理表格横向滚动时的样式 */
+.el-table--scrollable-x .el-table__body-wrapper {
+  overflow-x: auto !important;
+}
+
+/* 优化表格在移动端的触摸体验 */
+.el-table__body-wrapper {
+  -webkit-overflow-scrolling: touch;
+}
+
+/* 确保固定列的内容不会被截断 */
+.el-table__fixed-right-patch {
+  background-color: #fff;
+}
+
+/* 优化表格边框在移动端的显示 */
+.el-table::before,
+.el-table::after {
+  display: none;
+}
+
+/* 学生列表样式 */
+.student-list {
+  margin-top: 20px;
+}
+
+/* 选择控制栏 */
+.selection-bar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background-color: #f5f7fa;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.selection-count {
+  color: #606266;
+  font-size: 14px;
+}
+
+/* 学生卡片样式 */
+.student-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.student-card {
+  display: flex;
+  background: white;
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+  position: relative;
+  transition: all 0.3s;
+}
+
+.student-card.selected {
+  background-color: #f0f7ff;
+  border: 1px solid #409EFF;
+}
+
+.card-checkbox {
+  position: absolute;
+  top: 15px;
+  left: 15px;
+}
+
+.card-content {
+  flex: 1;
+  padding-left: 0;
+}
+
+.card-content.with-checkbox {
+  padding-left: 40px;
+}
+
+
+.student-main-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 15px;
+}
+
+.student-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #303133;
+}
+
+.student-id {
+  color: #909399;
+  font-size: 14px;
+}
+
+.student-detail {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #606266;
+}
+
+.info-item i {
+  color: #909399;
+}
+
+.card-actions {
+  display: flex;
+  gap: 15px;
+  padding-left: 15px;
+  border-left: 1px solid #EBEEF5;
   align-items: center;
 }
 
-.btn-on-top .el-button {
-  margin-bottom: 0;
+.edit-btn {
+  color: #e6a23c;
 }
 
+.delete-btn {
+  color: #f56c6c;
+}
+
+/* 底部操作栏 */
+.bottom-bar {
+  position: sticky;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  box-shadow: 0 -2px 12px 0 rgba(0,0,0,0.1);
+}
+
+/* 响应式调整 */
+@media screen and (max-width: 768px) {
+  .student-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .card-actions {
+    flex-direction: column;
+    padding-left: 10px;
+  }
+
+  .bottom-bar {
+    padding: 10px 20px;
+  }
+
+  .bottom-bar .el-button {
+    flex: 1;
+  }
+}
 </style>
+

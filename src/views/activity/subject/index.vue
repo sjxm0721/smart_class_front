@@ -14,7 +14,7 @@
         </el-input>
 
         <el-button
-          v-if="isTeacher"
+          v-if="auth==2"
           type="primary"
           icon="el-icon-plus"
           @click="openPublish"
@@ -68,7 +68,6 @@ export default {
   },
   data() {
     return {
-      isTeacher: true,
       publishVisible: false,
       subjectList: [],
       displayList: [],

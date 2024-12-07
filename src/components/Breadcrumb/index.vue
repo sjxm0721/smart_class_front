@@ -1,4 +1,3 @@
-<!-- 面包屑的全局组件   不用修改 -->
 <template>
   <el-breadcrumb class="app-breadcrumb" separator="/">
     <transition-group name="breadcrumb">
@@ -6,7 +5,7 @@
         <span
           v-if="item.redirect === 'noRedirect' || index == levelList.length - 1"
           class="no-redirect"
-          >{{ item.meta.title }}</span
+        >{{ item.meta.title }}</span
         >
         <a v-else @click.prevent="handleLink(item)">{{ item.meta.title }}</a>
       </el-breadcrumb-item>
@@ -24,23 +23,25 @@ export default {
     };
   },
   watch: {
-    $route() {
-      this.getBreadcrumb();
+    $route(to) {
+      // 当路由变化时重新获取面包屑
+      this.getBreadcrumb(to);
     },
   },
   created() {
-      this.getBreadcrumb();
+    // 初始化时获取面包屑
+    this.getBreadcrumb(this.$route);
   },
   methods: {
-    getBreadcrumb() {
-      // only detail routes with meta.title
-      let matched = this.$route.matched.filter(
+    getBreadcrumb(route) {
+      // only show routes with meta.title
+      let matched = route.matched.filter(
         (item) => item.meta && item.meta.title
       );
       const first = matched[0];
 
       if (!this.isDashboard(first)) {
-        matched = [{ path: "/dashboard", meta: { title: "Dashboard" } }].concat(
+        matched = [{ path: "/dashboard", meta: { title: "首页" } }].concat(
           matched
         );
       }
@@ -54,9 +55,7 @@ export default {
       if (!name) {
         return false;
       }
-      return (
-        name.trim().toLocaleLowerCase() === "Dashboard".toLocaleLowerCase()
-      );
+      return name.trim().toLocaleLowerCase() === "Dashboard".toLocaleLowerCase();
     },
     pathCompile(path) {
       // To solve this problem https://github.com/PanJiaChen/vue-element-admin/issues/561
@@ -65,12 +64,12 @@ export default {
       return toPath(params);
     },
     handleLink(item) {
-        const { redirect, path } = item;
-        if (redirect) {
-          this.$router.push(redirect);
-          return;
-        }
-        this.$router.push(this.pathCompile(path));
+      const { redirect, path } = item;
+      if (redirect) {
+        this.$router.push(redirect);
+        return;
+      }
+      this.$router.push(this.pathCompile(path));
     },
   },
 };

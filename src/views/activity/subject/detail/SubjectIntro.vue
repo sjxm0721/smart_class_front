@@ -5,6 +5,7 @@
       <!-- 顶部操作区域 -->
       <div class="operation-area">
         <el-button
+          v-if="auth==2"
           type="primary"
           size="medium"
           icon="el-icon-download"
@@ -58,9 +59,13 @@
 # Script 部分
 <script>
 import { reqGetSubjectInfo,reqExportGrades} from '@/api/activity/subject'
+import { mapState } from 'vuex'
 
 export default {
   name: 'SubjectIntro',
+  computed:{
+    ...mapState("user",["auth"])
+  },
   data() {
     return {
       activeMenu: 'intro',
